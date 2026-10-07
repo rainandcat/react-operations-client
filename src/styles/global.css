@@ -1,0 +1,67 @@
+@import './tokens.css';
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 20rem;
+  min-height: 100vh;
+  margin: 0;
+  background: var(--canvas);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.project-shell {
+  display: grid;
+  min-height: 100vh;
+  padding: clamp(1.5rem, 7vw, 7rem);
+  place-items: center;
+}
+
+.project-intro {
+  width: min(100%, 48rem);
+  padding: clamp(2rem, 7vw, 5rem);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-large);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.eyebrow,
+.status {
+  color: var(--accent);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+h1 {
+  max-width: 12ch;
+  margin: 0.75rem 0 1.25rem;
+  font-size: clamp(2.5rem, 7vw, 5.5rem);
+  letter-spacing: -0.06em;
+  line-height: 0.94;
+}
+
+.project-summary {
+  max-width: 43rem;
+  color: var(--muted);
+  font-size: 1.0625rem;
+  line-height: 1.7;
+}
+
+.status {
+  display: inline-block;
+  margin: 1rem 0 0;
+  padding: 0.55rem 0.75rem;
+  border-radius: 999px;
+  background: var(--accent-soft);
+}
