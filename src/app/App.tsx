@@ -10,7 +10,9 @@ export function App() {
           This portfolio application uses locally authored mock data only. Account overview,
           activity history, notifications, and preferences will arrive as focused features.
         </p>
-        <p className="status" role="status">{projectStatus}</p>
+        <p className="status" role="status">
+          {projectStatus}
+        </p>
       </section>
     </main>
   );
