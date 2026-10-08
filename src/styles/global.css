@@ -474,6 +474,118 @@ button {
   cursor: not-allowed;
   opacity: 0.45;
 }
+.activity-detail {
+  padding: clamp(2rem, 5vw, 4rem);
+}
+.activity-detail h1 {
+  margin: 0.8rem 0 2rem;
+  font-size: clamp(2.5rem, 5vw, 4.5rem);
+  font-weight: 500;
+  letter-spacing: -0.06em;
+  text-transform: capitalize;
+}
+.activity-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+  margin: 0 0 2rem;
+}
+.activity-detail-grid div {
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+.activity-detail-grid dt {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.activity-detail-grid dd {
+  margin: 0.4rem 0 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.account-panel {
+  padding: clamp(1.5rem, 4vw, 3rem);
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  background: var(--surface);
+}
+.account-panel-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+.account-panel-heading h2 {
+  margin: 0.5rem 0 0;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 500;
+  letter-spacing: -0.05em;
+}
+.account-panel-heading .activity-field {
+  flex: 0 1 12rem;
+}
+.account-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+.account-summary div {
+  display: grid;
+  gap: 0.6rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+.account-summary span {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.account-summary strong {
+  font-size: clamp(1.2rem, 2.5vw, 2rem);
+  overflow-wrap: anywhere;
+}
+.notification-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.notification-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.5rem 0;
+  border-top: 1px solid var(--border);
+}
+.notification-kind {
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.notification-list h2 {
+  margin: 0.4rem 0;
+  font-size: 1.25rem;
+  font-weight: 650;
+}
+.notification-list p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.notification-meta {
+  display: grid;
+  flex: none;
+  align-content: start;
+  gap: 0.5rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+  text-align: right;
+}
 .inline-link,
 .back-link {
   color: var(--accent);
@@ -519,6 +631,17 @@ button {
   }
 }
 @media (max-width: 700px) {
+  .activity-detail-grid,
+  .account-summary {
+    grid-template-columns: 1fr;
+  }
+  .notification-list li {
+    flex-direction: column;
+  }
+  .notification-meta {
+    display: flex;
+    text-align: left;
+  }
   .sign-in-shell {
     grid-template-columns: 1fr;
   }

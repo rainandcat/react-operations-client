@@ -26,10 +26,24 @@ export function waitForMockResponse(signal: AbortSignal, delayMs = 350): Promise
 
 export function requireMockService(scenario: MockScenario): void {
   if (scenario === 'unavailable') {
-    throw new ApiRequestError(
-      'UNAVAILABLE',
-      'The fictional activity service is unavailable.',
-      true
-    );
+    throw new ApiRequestError('UNAVAILABLE', 'The fictional data service is unavailable.', true);
+  }
+}
+
+export function toApiRequestError(error: unknown): ApiRequestError {
+  if (error instanceof ApiRequestError) return error;
+  return new ApiRequestError('UNAVAILABLE', 'An unexpected demo service error occurred.', true);
+}
+
+export async function runMockRequest(
+  signal: AbortSignal,
+  scenario: MockScenario = 'normal'
+): Promise<void> {
+  try {
+    await waitForMockResponse(signal);
+    requireMockService(scenario);
+  } catch (error) {
+    if (signal.aborted) throw error;
+    throw toApiRequestError(error);
   }
 }

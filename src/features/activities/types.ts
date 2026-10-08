@@ -1,5 +1,6 @@
 export type ActivityKind = 'credit' | 'debit' | 'transfer';
 export type ActivityStatus = 'pending' | 'completed' | 'declined';
+export type ActivitySort = 'newest' | 'oldest';
 
 export interface ClientActivity {
   id: string;
@@ -12,6 +13,7 @@ export interface ClientActivity {
 
 export interface ActivitySearchParams {
   kind?: ActivityKind;
+  sort: ActivitySort;
   page: number;
   pageSize: number;
 }

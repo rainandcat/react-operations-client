@@ -8,3 +8,9 @@ export interface ClientNotification {
   createdAt: string;
   readAt: string | null;
 }
+
+export interface NotificationSearchParams {
+  kind?: NotificationKind;
+  page: number;
+  pageSize: number;
+}

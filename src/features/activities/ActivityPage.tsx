@@ -24,9 +24,10 @@ function readScenario(value: string | null): MockScenario {
 export default function ActivityPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const kind = readKind(searchParams.get('kind'));
+  const sort = searchParams.get('sort') === 'oldest' ? 'oldest' : 'newest';
   const page = readPage(searchParams.get('page'));
   const scenario = readScenario(searchParams.get('demo'));
-  const query = useActivities({ kind, page, pageSize: 5 }, scenario);
+  const query = useActivities({ kind, sort, page, pageSize: 5 }, scenario);
   const totalPages = Math.max(1, Math.ceil((query.data?.total ?? 0) / 5));
 
   function updateParams(key: string, value: string, resetPage = false) {
@@ -63,6 +64,19 @@ export default function ActivityPage() {
               <option value="credit">Credit</option>
               <option value="debit">Debit</option>
               <option value="transfer">Transfer</option>
+            </select>
+          </div>
+          <div className="activity-field">
+            <label htmlFor="activity-sort">Sort</label>
+            <select
+              id="activity-sort"
+              value={sort}
+              onChange={(event) =>
+                updateParams('sort', event.target.value === 'oldest' ? 'oldest' : '', true)
+              }
+            >
+              <option value="newest">Newest first</option>
+              <option value="oldest">Oldest first</option>
             </select>
           </div>
           <div className="activity-field">

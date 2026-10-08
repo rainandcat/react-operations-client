@@ -1,9 +1,5 @@
-import { ApiRequestError, type PaginatedResponse } from '@/services/apiTypes';
-import {
-  requireMockService,
-  waitForMockResponse,
-  type MockScenario
-} from '@/services/mockTransport';
+import { ApiRequestError, type ApiResponse, type PaginatedResponse } from '@/services/apiTypes';
+import { runMockRequest, type MockScenario } from '@/services/mockTransport';
 import type { ActivitySearchParams, ClientActivity } from './types';
 
 const activities: readonly ClientActivity[] = [
@@ -87,19 +83,33 @@ export async function listActivities(
     throw new ApiRequestError('VALIDATION_ERROR', 'Page and page size must be positive integers.');
   }
 
-  await waitForMockResponse(signal);
-  requireMockService(scenario);
+  await runMockRequest(signal, scenario);
 
   const filtered =
     scenario === 'empty'
       ? []
       : activities.filter((activity) => !params.kind || activity.kind === params.kind);
+  const sorted = [...filtered].sort((a, b) =>
+    params.sort === 'oldest'
+      ? a.occurredAt.localeCompare(b.occurredAt)
+      : b.occurredAt.localeCompare(a.occurredAt)
+  );
   const start = (params.page - 1) * params.pageSize;
   return {
-    data: filtered.slice(start, start + params.pageSize),
+    data: sorted.slice(start, start + params.pageSize),
     page: params.page,
     pageSize: params.pageSize,
     total: filtered.length,
     updatedAt: '2026-01-15T12:00:00.000Z'
   };
+}
+
+export async function getActivity(
+  activityId: string,
+  signal: AbortSignal
+): Promise<ApiResponse<ClientActivity>> {
+  await runMockRequest(signal);
+  const activity = activities.find((item) => item.id === activityId);
+  if (!activity) throw new ApiRequestError('NOT_FOUND', 'This fictional activity does not exist.');
+  return { data: activity, updatedAt: '2026-01-15T12:00:00.000Z' };
 }
