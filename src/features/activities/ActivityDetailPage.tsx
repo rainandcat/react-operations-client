@@ -1,14 +1,17 @@
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import { ApiRequestError } from '@/services/apiTypes';
 import { useActivity } from './useActivities';
 
 export default function ActivityDetailPage() {
   const { activityId } = useParams();
+  const location = useLocation();
+  const listSearch = (location.state as { listSearch?: string } | null)?.listSearch;
+  const backTo = listSearch?.startsWith('?') ? `/activity${listSearch}` : '/activity';
   const query = useActivity(activityId ?? '');
   const notFound = query.error instanceof ApiRequestError && query.error.code === 'NOT_FOUND';
   return (
     <div className="page-stack">
-      <Link className="back-link" to="/activity">
+      <Link className="back-link" to={backTo}>
         ← Back to activity
       </Link>
       {query.isPending && (
@@ -26,7 +29,7 @@ export default function ActivityDetailPage() {
               : 'An unexpected demo error occurred.'}
           </p>
           {notFound ? (
-            <Link className="button button-primary" to="/activity">
+            <Link className="button button-primary" to={backTo}>
               Back to activity
             </Link>
           ) : (

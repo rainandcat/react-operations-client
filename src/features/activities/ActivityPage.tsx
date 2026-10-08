@@ -1,4 +1,4 @@
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { ApiRequestError } from '@/services/apiTypes';
 import type { MockScenario } from '@/services/mockTransport';
 import type { ActivityKind } from './types';
@@ -22,6 +22,7 @@ function readScenario(value: string | null): MockScenario {
 }
 
 export default function ActivityPage() {
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const kind = readKind(searchParams.get('kind'));
   const sort = searchParams.get('sort') === 'oldest' ? 'oldest' : 'newest';
@@ -139,7 +140,11 @@ export default function ActivityPage() {
             <ul className="activity-list">
               {query.data.data.map((activity) => (
                 <li key={activity.id}>
-                  <Link to={`/activity/${activity.id}`} className="activity-item">
+                  <Link
+                    to={`/activity/${activity.id}`}
+                    state={{ listSearch: location.search }}
+                    className="activity-item"
+                  >
                     <span className="activity-monogram" aria-hidden="true">
                       {activity.kind.slice(0, 1).toUpperCase()}
                     </span>

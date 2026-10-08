@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useClientSession } from '@/features/auth/sessionStore';
+import { usePreferences } from '@/features/preferences/preferencesStore';
 
 const links = [
   { to: '/overview', label: 'Overview' },
@@ -12,6 +13,8 @@ const links = [
 export function ClientLayout() {
   const session = useClientSession((state) => state.session);
   const signOut = useClientSession((state) => state.signOut);
+  const theme = usePreferences((state) => state.theme);
+  const density = usePreferences((state) => state.density);
   const navigate = useNavigate();
 
   function handleSignOut() {
@@ -20,7 +23,7 @@ export function ClientLayout() {
   }
 
   return (
-    <div className="client-shell">
+    <div className="client-shell" data-theme={theme} data-density={density}>
       <header className="client-header">
         <NavLink to="/overview" className="brand" aria-label="Operations Client home">
           <span className="brand-icon">O</span>

@@ -146,6 +146,59 @@ button {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  background: var(--canvas);
+  color: var(--ink);
+}
+.client-shell[data-theme='dark'] {
+  --canvas: #151c24;
+  --ink: #f3f0ea;
+  --muted: #b6c0ca;
+  --surface: #202b35;
+  --accent: #f0a28c;
+  --accent-soft: #473630;
+  --border: #394751;
+  --shadow: 0 1.5rem 4rem rgb(0 0 0 / 25%);
+}
+.client-shell[data-density='compact'] .activity-item,
+.client-shell[data-density='compact'] .notification-list li {
+  padding-top: 0.65rem;
+  padding-bottom: 0.65rem;
+}
+.preference-panel {
+  display: grid;
+  gap: 1.5rem;
+}
+.preference-panel fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.preference-panel legend {
+  margin-bottom: 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+.preference-panel fieldset p {
+  flex-basis: 100%;
+  margin: 0 0 0.5rem;
+}
+.preference-panel label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+.preference-panel > .button {
+  justify-self: start;
+}
+.client-shell[data-theme='dark'] .button-primary {
+  color: #152027;
+}
+.client-shell[data-theme='dark'] .button-primary:hover {
+  background: #ffc0a8;
 }
 .client-header {
   display: flex;
