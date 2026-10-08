@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { ClientLayout } from '@/components/layout/ClientLayout';
 import { SignInPage } from '@/features/auth/SignInPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
+import { RouteErrorPage } from '@/pages/RouteErrorPage';
 import { ProtectedRoute } from './ProtectedRoute';
 
 const OverviewPage = lazy(() => import('@/features/account/OverviewPage'));
@@ -12,9 +13,10 @@ const NotificationsPage = lazy(() => import('@/features/notifications/Notificati
 const PreferencesPage = lazy(() => import('@/features/preferences/PreferencesPage'));
 
 export const router = createBrowserRouter([
-  { path: '/sign-in', element: <SignInPage /> },
+  { path: '/sign-in', element: <SignInPage />, errorElement: <RouteErrorPage /> },
   {
     path: '/',
+    errorElement: <RouteErrorPage />,
     element: (
       <ProtectedRoute>
         <ClientLayout />
@@ -29,5 +31,5 @@ export const router = createBrowserRouter([
       { path: 'preferences', element: <PreferencesPage /> }
     ]
   },
-  { path: '*', element: <NotFoundPage /> }
+  { path: '*', element: <NotFoundPage />, errorElement: <RouteErrorPage /> }
 ]);

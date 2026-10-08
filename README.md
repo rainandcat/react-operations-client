@@ -26,6 +26,8 @@ Preferences offers light/dark appearance and comfortable/compact list spacing, s
 
 ## Quality checks
 
+Unexpected route/render failures show a safe recovery screen instead of a blank page. The demo does not expose internal error details or send them to an external service.
+
 ```bash
 npm run typecheck
 npm run lint
