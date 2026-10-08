@@ -2,7 +2,7 @@
 
 A public React portfolio project for a focused client experience. It is a clean-room implementation that uses only locally authored mock data.
 
-Current status: M1 navigation, responsive layout, and local demo sign-in are implemented. Data pages are navigation shells; mock API behavior arrives in M2. See [Product spec](docs/PRODUCT_SPEC.md).
+Current status: the activity list now uses a fully local mock API with URL-backed type filtering, pagination, and loading/error/empty states. Demo sign-in and protected navigation are also available. Activity detail, account data, notifications, and preferences remain planned. See [Product spec](docs/PRODUCT_SPEC.md).
 
 ## Planned scope
 
@@ -19,6 +19,8 @@ npm run dev
 ```
 
 Open the local URL shown by Vite. Use `member@demo.invalid` with passcode `demo123`. These are public demo strings, not real credentials. The session is stored only in browser session storage.
+
+In Activity, filter by fictional type and change pages. The “Demo state” control shows normal, empty, and service-error responses. No real network request is sent by the mock service.
 
 ## Quality checks
 
