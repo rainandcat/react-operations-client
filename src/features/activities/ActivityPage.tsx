@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { ApiRequestError } from '@/services/apiTypes';
 import type { MockScenario } from '@/services/mockTransport';
@@ -30,6 +31,20 @@ export default function ActivityPage() {
   const scenario = readScenario(searchParams.get('demo'));
   const query = useActivities({ kind, sort, page, pageSize: 5 }, scenario);
   const totalPages = Math.max(1, Math.ceil((query.data?.total ?? 0) / 5));
+  const pageOutOfRange = query.isSuccess && !query.isPlaceholderData && page > totalPages;
+
+  useEffect(() => {
+    if (!pageOutOfRange) return;
+    setSearchParams(
+      (previous) => {
+        const next = new URLSearchParams(previous);
+        if (totalPages === 1) next.delete('page');
+        else next.set('page', String(totalPages));
+        return next;
+      },
+      { replace: true }
+    );
+  }, [pageOutOfRange, setSearchParams, totalPages]);
 
   function updateParams(key: string, value: string, resetPage = false) {
     setSearchParams(
@@ -122,7 +137,8 @@ export default function ActivityPage() {
             </button>
           </div>
         )}
-        {query.isSuccess && query.data.data.length === 0 && (
+        {pageOutOfRange && <p role="status">Moving to the last available page…</p>}
+        {query.isSuccess && !pageOutOfRange && query.data.data.length === 0 && (
           <div className="activity-message">
             <h2>Nothing to show</h2>
             <p>Try another activity type or switch the demo state to Normal.</p>
@@ -135,7 +151,7 @@ export default function ActivityPage() {
             </button>
           </div>
         )}
-        {query.isSuccess && query.data.data.length > 0 && (
+        {query.isSuccess && !pageOutOfRange && query.data.data.length > 0 && (
           <>
             <ul className="activity-list">
               {query.data.data.map((activity) => (

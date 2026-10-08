@@ -13,11 +13,11 @@ function LocationProbe() {
   return <output data-testid="location">{location.search}</output>;
 }
 
-function renderPage() {
+function renderPage(initialEntry = '/activity') {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={['/activity']}>
+      <MemoryRouter initialEntries={[initialEntry]}>
         <ActivityPage />
         <LocationProbe />
       </MemoryRouter>
@@ -26,6 +26,12 @@ function renderPage() {
 }
 
 describe('client activity list', () => {
+  it('corrects a one-page filtered URL without clearing the filter', async () => {
+    renderPage('/activity?kind=debit&page=2');
+    expect(await screen.findByText('A-0003 · 2026-01-13')).toBeTruthy();
+    expect(screen.getByTestId('location').textContent).toBe('?kind=debit');
+    expect(screen.queryByText('Nothing to show')).toBeNull();
+  });
   it('shows fictional results and URL-backed filtering', async () => {
     const user = userEvent.setup();
     renderPage();

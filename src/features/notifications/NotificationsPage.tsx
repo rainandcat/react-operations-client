@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ApiRequestError } from '@/services/apiTypes';
 import type { MockScenario } from '@/services/mockTransport';
@@ -20,6 +21,20 @@ export default function NotificationsPage() {
     demo === 'empty' ? 'empty' : demo === 'error' ? 'unavailable' : 'normal';
   const query = useNotifications({ kind, page, pageSize: 4 }, scenario);
   const totalPages = Math.max(1, Math.ceil((query.data?.total ?? 0) / 4));
+  const pageOutOfRange = query.isSuccess && !query.isPlaceholderData && page > totalPages;
+
+  useEffect(() => {
+    if (!pageOutOfRange) return;
+    setSearchParams(
+      (previous) => {
+        const next = new URLSearchParams(previous);
+        if (totalPages === 1) next.delete('page');
+        else next.set('page', String(totalPages));
+        return next;
+      },
+      { replace: true }
+    );
+  }, [pageOutOfRange, setSearchParams, totalPages]);
 
   function updateParams(key: string, value: string, resetPage = false) {
     setSearchParams(
@@ -100,7 +115,8 @@ export default function NotificationsPage() {
             </button>
           </div>
         )}
-        {query.isSuccess && query.data.data.length === 0 && (
+        {pageOutOfRange && <p role="status">Moving to the last available page…</p>}
+        {query.isSuccess && !pageOutOfRange && query.data.data.length === 0 && (
           <div className="activity-message">
             <h2>No notifications</h2>
             <p>Try another type or switch the demo state to Normal.</p>
@@ -113,7 +129,7 @@ export default function NotificationsPage() {
             </button>
           </div>
         )}
-        {query.isSuccess && query.data.data.length > 0 && (
+        {query.isSuccess && !pageOutOfRange && query.data.data.length > 0 && (
           <>
             <ul className="notification-list">
               {query.data.data.map((item) => (
