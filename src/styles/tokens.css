@@ -1,6 +1,6 @@
 :root {
-  color: #1b2230;
-  background: #fbf8f4;
+  color: #172033;
+  background: #f6f4ef;
   font-family:
     Inter,
     ui-sans-serif,
@@ -11,13 +11,13 @@
     sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
-  --canvas: #fbf8f4;
-  --ink: #1b2230;
-  --muted: #646b78;
-  --surface: #fffefa;
-  --accent: #a44938;
-  --accent-soft: #f8e6e1;
-  --border: #e5ddd5;
+  --canvas: #f6f4ef;
+  --ink: #172033;
+  --muted: #5f6878;
+  --surface: #fffdf8;
+  --accent: #3446a5;
+  --accent-soft: #e8ebff;
+  --border: #dfddd6;
   --radius-large: 1.5rem;
-  --shadow: 0 1.5rem 4rem rgb(27 34 48 / 9%);
+  --shadow: 0 1.5rem 4rem rgb(23 32 51 / 10%);
 }

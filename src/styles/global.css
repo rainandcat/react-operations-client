@@ -51,7 +51,7 @@ button {
   color: white;
 }
 .button-primary:hover {
-  background: #87392d;
+  background: #253685;
 }
 .button-light {
   background: var(--surface);
@@ -68,11 +68,11 @@ button {
   align-items: flex-start;
   justify-content: center;
   padding: clamp(2rem, 8vw, 9rem);
-  background: #263c3a;
-  color: #fff8eb;
+  background: #202a3f;
+  color: #f9f8f3;
 }
 .sign-in-story .eyebrow {
-  color: #e3b5a5;
+  color: #b9c5ff;
 }
 .sign-in-story h1 {
   max-width: 9ch;
@@ -84,13 +84,13 @@ button {
 }
 .sign-in-story > p {
   max-width: 34rem;
-  color: #d5ded6;
+  color: #cbd3e2;
   font-size: 1.15rem;
   line-height: 1.75;
 }
 .story-mark {
   margin-top: 5rem;
-  color: #e3b5a5;
+  color: #b9c5ff;
   font-size: 0.85rem;
   letter-spacing: 0.2em;
 }
@@ -129,7 +129,7 @@ button {
 }
 .form-error {
   margin: 0;
-  color: #a02f26;
+  color: #a03834;
   font-size: 0.9rem;
 }
 .demo-hint {
@@ -150,13 +150,13 @@ button {
   color: var(--ink);
 }
 .client-shell[data-theme='dark'] {
-  --canvas: #151c24;
-  --ink: #f3f0ea;
-  --muted: #b6c0ca;
-  --surface: #202b35;
-  --accent: #f0a28c;
-  --accent-soft: #473630;
-  --border: #394751;
+  --canvas: #151c2c;
+  --ink: #f4f5fa;
+  --muted: #b9c3d6;
+  --surface: #202a3f;
+  --accent: #b9c5ff;
+  --accent-soft: #2e3b65;
+  --border: #46516b;
   --shadow: 0 1.5rem 4rem rgb(0 0 0 / 25%);
 }
 .client-shell[data-density='compact'] .activity-item,
@@ -195,10 +195,10 @@ button {
   justify-self: start;
 }
 .client-shell[data-theme='dark'] .button-primary {
-  color: #152027;
+  color: #172033;
 }
 .client-shell[data-theme='dark'] .button-primary:hover {
-  background: #ffc0a8;
+  background: #d4dcff;
 }
 .client-header {
   display: flex;
@@ -225,8 +225,8 @@ button {
   height: 2.2rem;
   place-items: center;
   border-radius: 0.65rem;
-  background: #263c3a;
-  color: white;
+  background: #ccd2ff;
+  color: #202a3f;
   font-family: Georgia, serif;
   font-weight: 400;
 }
@@ -286,11 +286,11 @@ button {
 .welcome-panel {
   padding: clamp(2rem, 6vw, 5rem);
   border-radius: 1.5rem;
-  background: #263c3a;
-  color: #fff8eb;
+  background: #202a3f;
+  color: #f9f8f3;
 }
 .welcome-panel .eyebrow {
-  color: #e3b5a5;
+  color: #b9c5ff;
 }
 .welcome-panel h1 {
   max-width: 13ch;
@@ -301,7 +301,7 @@ button {
   line-height: 1;
 }
 .welcome-panel p:not(.eyebrow) {
-  color: #d5ded6;
+  color: #cbd3e2;
   font-size: 1.1rem;
 }
 .welcome-panel .button {
