@@ -5,7 +5,7 @@ import { useClientSession } from '@/features/auth/sessionStore';
 import { usePreferences } from '@/features/preferences/preferencesStore';
 
 const links = [
-  { to: '/', label: 'Markets' },
+  { to: '/markets/BTCUSDT', label: 'Markets' },
   { to: '/wallet/overview', label: 'Wallet' },
   { to: '/activity', label: 'Activity' },
   { to: '/notifications', label: 'Notifications' },
@@ -47,8 +47,11 @@ export function ClientLayout() {
             <NavLink
               key={to}
               to={to}
-              end={to === '/'}
-              className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
+              className={({ isActive }) =>
+                isActive || (label === 'Markets' && location.pathname.startsWith('/markets/'))
+                  ? 'nav-link active'
+                  : 'nav-link'
+              }
             >
               {label}
             </NavLink>

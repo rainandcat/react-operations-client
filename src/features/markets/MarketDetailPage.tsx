@@ -18,7 +18,7 @@ function MarketDetail({ symbol }: { symbol: MarketSymbol }) {
   return (
     <div className="page-stack">
       <Link className="back-link" to={`/${mode === 'demo' ? '?mode=demo' : ''}`}>
-        ← Back to markets
+        ← Back to home
       </Link>
       <section className="account-panel">
         <div className="account-panel-heading">

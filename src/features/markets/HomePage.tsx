@@ -20,9 +20,12 @@ export default function HomePage() {
           Three pairs. A rolling 24-hour view. Explore prices and one-minute candles without signing
           in.
         </p>
-        <a className="button button-light" href="#market-watchlist">
-          Explore markets <span aria-hidden="true">↘</span>
-        </a>
+        <Link
+          className="button button-light"
+          to={`/markets/BTCUSDT${mode === 'demo' ? '?mode=demo' : ''}`}
+        >
+          Explore markets <span aria-hidden="true">↗</span>
+        </Link>
         <p className="market-source">
           Binance Spot public market data · Read only · Unofficial product
         </p>
