@@ -8,9 +8,9 @@ export function RouteErrorPage() {
     <main className="app-error-shell" role="alert">
       <p className="eyebrow">{missing ? '404 / Page unavailable' : 'Route error'}</p>
       <h1>{missing ? 'This page is not available.' : 'This page could not open.'}</h1>
-      <p>Other parts of this fictional demo are still available.</p>
-      <Link className="button button-primary" to="/overview">
-        Go to overview
+      <p>Return to public markets or reload to try again.</p>
+      <Link className="button button-primary" to="/">
+        Go to markets
       </Link>
       <button
         className="button button-light"

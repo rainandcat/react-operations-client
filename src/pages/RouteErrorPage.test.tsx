@@ -30,9 +30,7 @@ describe('unexpected render errors', () => {
     render(<RouterProvider router={router} />);
     expect(await screen.findByRole('alert')).toBeTruthy();
     expect(screen.getByRole('heading', { name: 'This page could not open.' })).toBeTruthy();
-    expect(screen.getByRole('link', { name: 'Go to overview' }).getAttribute('href')).toBe(
-      '/overview'
-    );
+    expect(screen.getByRole('link', { name: 'Go to markets' }).getAttribute('href')).toBe('/');
     expect(screen.queryByText(/Internal demo detail/)).toBeNull();
   });
 

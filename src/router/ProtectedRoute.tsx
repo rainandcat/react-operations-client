@@ -6,6 +6,11 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
   const session = useClientSession((state) => state.session);
   const location = useLocation();
   if (!session)
-    return <Navigate to="/sign-in" replace state={{ from: location.pathname + location.search }} />;
+    return (
+      <Navigate
+        to={`/?${new URLSearchParams({ login: '1', returnTo: location.pathname + location.search + location.hash })}`}
+        replace
+      />
+    );
   return children;
 }

@@ -1,0 +1,25 @@
+{
+  "checkedAt": "2026-10-09T20:32:59.317Z",
+  "environment": "Local Chromium production preview",
+  "pair": "BTCUSDT",
+  "live": true,
+  "status": "live",
+  "message": "Live\nLive · Binance Spot public market data\nSource time: 2026-10-09 20:32:58 UTC",
+  "candleCount": "1 minute · UTC · 300 candles",
+  "responses": [
+    {
+      "endpoint": "/api/v3/exchangeInfo",
+      "status": 200
+    },
+    {
+      "endpoint": "/api/v3/ticker/24hr",
+      "status": 200
+    },
+    {
+      "endpoint": "/api/v3/klines",
+      "status": 200
+    }
+  ],
+  "failures": [],
+  "errors": []
+}

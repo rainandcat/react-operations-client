@@ -13,14 +13,14 @@ afterEach(() => {
 
 function SignInProbe() {
   const location = useLocation();
-  return <p>Return to {(location.state as { from?: string } | null)?.from}</p>;
+  return <p>Return to {new URLSearchParams(location.search).get('returnTo')}</p>;
 }
 
 function renderProtected() {
   render(
     <MemoryRouter initialEntries={['/activity?kind=debit']}>
       <Routes>
-        <Route path="/sign-in" element={<SignInProbe />} />
+        <Route path="/" element={<SignInProbe />} />
         <Route
           path="/activity"
           element={

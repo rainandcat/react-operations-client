@@ -4,7 +4,7 @@ import { ApiRequestError } from '@/services/apiTypes';
 import type { MockScenario } from '@/services/mockTransport';
 import { useAccountOverview } from './useAccountOverview';
 
-export default function OverviewPage() {
+export default function WalletOverviewPage() {
   const name = useClientSession((state) => state.session?.displayName ?? 'there');
   const [searchParams, setSearchParams] = useSearchParams();
   const scenario: MockScenario =
@@ -25,9 +25,9 @@ export default function OverviewPage() {
   return (
     <div className="page-stack">
       <section className="welcome-panel">
-        <p className="eyebrow">Your overview</p>
-        <h1>Good to see you, {name}.</h1>
-        <p>Everything that matters, gathered in one quiet place.</p>
+        <p className="eyebrow">Demo wallet overview</p>
+        <h1>Your wallet, {name}.</h1>
+        <p>A fictional account snapshot, separate from public market prices.</p>
         <Link className="button button-light" to="/activity">
           Explore activity <span aria-hidden="true">↗</span>
         </Link>

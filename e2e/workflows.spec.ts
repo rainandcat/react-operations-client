@@ -1,4 +1,9 @@
 import { test, expect, type Page } from '@playwright/test';
+import { installMarketFixtures } from './marketFixtures';
+
+test.beforeEach(async ({ page }) => {
+  await installMarketFixtures(page);
+});
 
 async function signIn(page: Page) {
   await expect(page.getByRole('button', { name: 'Enter demo' })).toBeVisible();
@@ -10,7 +15,7 @@ test('protected activity, out-of-range correction and detail return', async ({
   page
 }, testInfo) => {
   await page.goto('/activity?kind=debit&sort=oldest&page=99');
-  await expect(page).toHaveURL(/\/sign-in$/);
+  await expect(page).toHaveURL(/login=1/);
   await signIn(page);
   await expect(page.getByText('A-0006 · 2026-01-10')).toBeVisible();
   await expect(page).toHaveURL(/\/activity\?kind=debit&sort=oldest$/);
@@ -63,8 +68,8 @@ test('missing detail, missing route and sign out recover safely', async ({ page 
   await expect(page.getByRole('heading', { name: 'Activity not found' })).toBeVisible();
   await page.goto('/does-not-exist');
   await expect(page.getByText('404 / Wrong turn')).toBeVisible();
-  await page.getByRole('link', { name: 'Go to overview' }).click();
+  await page.getByRole('link', { name: 'Go to markets' }).click();
   await page.getByRole('button', { name: 'Sign out' }).click();
   await page.goto('/activity');
-  await expect(page).toHaveURL(/\/sign-in$/);
+  await expect(page).toHaveURL(/login=1/);
 });

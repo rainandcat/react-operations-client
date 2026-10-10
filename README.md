@@ -1,34 +1,64 @@
 # React Operations Client
 
-A public React portfolio project for a focused client experience. It is a clean-room implementation that uses only locally authored mock data.
+A React + TypeScript portfolio app with a public Spot market notebook and a separate fictional account experience. Market data comes from keyless Binance endpoints; wallet, activity, notifications and authentication remain local mocks. This is an unofficial, read-only product.
 
-Current status: account overview, activity list/detail, and notifications use an independent local mock API with URL-backed filters, sorting, pagination, and loading/error/empty states. Demo sign-in, protected navigation, and persistent display preferences are also available. See [Product spec](docs/PRODUCT_SPEC.md).
+## Explore
 
-## Implemented scope
+- Public `/`: searchable BTC/USDT, ETH/USDT and SOL/USDT watchlist with price, rolling 24h change and USDT quote volume.
+- Public `/markets/:symbol`: 24h summary and interactive one-minute UTC candles, connection state and recovery.
+- Shared demo sign-in dialog: stays on the current public page or returns to the requested protected URL. Cancel clears the destination; reload and browser history preserve dialog state.
+- Protected `/wallet/overview`, `/activity`, `/activity/:activityId`, `/notifications`, `/preferences`: fictional balance/records, URL filters/pagination, persistent light/dark theme and list density.
+- Removed `/overview` and `/sign-in` return 404.
 
-- Account overview and activity history
-- Mock notifications and preferences
-- Responsive navigation and accessible interface states
-- Mock session handling
+## Run locally
 
-## Local development
+Use Node.js 22.14 or newer in the Node 22 line.
 
 ```bash
 npm ci
 npm run dev
 ```
 
-Open the local URL shown by Vite. Use `member@demo.invalid` with passcode `demo123`. These are public demo strings, not real credentials. The session is stored only in browser session storage.
+Home opens without authentication. Choose **Fixed demonstration** in Market data, or open `/?mode=demo`, to explore locally authored fixed fixtures without external connectivity. This is explicit, never a silent fallback for live data. Live requires browser access to `data-api.binance.vision` and `data-stream.binance.vision`.
 
-In Activity, filter and sort fictional records, change pages, and open a detail. Overview and Notifications also include independent fictional data. The “Demo state” controls show normal, empty, and service-error responses. No real network request is sent by the mock service.
+Demo account: `member@demo.invalid`, passcode `demo123`. These are public fictional strings. Session lives in session storage; preferences in local storage. The dialog does not connect a Binance account.
 
-Preferences offers light/dark appearance and comfortable/compact list spacing, stored only in this browser. Returning from a filtered activity detail preserves the URL filters. No real network request is sent by the mock service.
+## Preview
 
-The light palette follows Manager's navy, blue and warm-neutral color tokens while retaining Client's layout.
+![Public market notebook on desktop, fixed demonstration data](docs/screenshots/market-home-desktop.png)
 
-## Quality checks
+<img src="docs/screenshots/market-detail-mobile.png" width="390" alt="One-minute candles on mobile viewport, fixed demonstration data" />
 
-Unexpected route/render failures show a safe recovery screen instead of a blank page. The demo does not expose internal error details or send them to an external service.
+These screenshots use explicit fixed demonstration mode. [Real connection evidence](docs/market-smoke.json) and the [live smoke screenshot](docs/screenshots/market-live-smoke.png) are separate dated artifacts.
+
+Regenerate the fixed market screenshots with `npm run screenshots:markets` after UI changes.
+
+## Architecture
+
+```mermaid
+flowchart LR
+  Router[Public and protected routes] --> UI[Feature pages]
+  UI --> Query[TanStack Query snapshots]
+  Query --> REST[Public Binance REST]
+  WS[Page-owned WebSocket] --> Merge[Buffered candle and ticker merge]
+  Query --> Merge
+  Merge --> UI
+  Store[Zustand session and preferences] --> UI
+  UI --> Mock[Fictional account APIs]
+```
+
+- Feature directories own UI, hooks, services, types and tests. No runtime imports from Manager.
+- Query owns metadata and REST snapshots. One market API instance coordinates rate-limit cooldown; Query does not multiply retries. Requests cancel with their page/connection attempt.
+- Each mounted market page owns one socket per visible tab. Background/offline closes it; foreground, reconnect and candle gaps resynchronize history before live.
+- Events buffer while REST loads, with generation checks for late results. Candles merge by open time/event time and never reopen after closure. Limits: 300 initial candles, 500 retained, 1,000 buffered events.
+- Every selected stream must be fresh before live. A 15s stale threshold and bounded jittered reconnect protect recovery. WS failure retains a labelled stale snapshot. 429/418 honor Retry-After, including manual retry.
+- Live and fixture data stay separate. Invalid payloads fail rather than becoming zero prices. Metadata excludes non-Spot/inactive instruments.
+- Charts support pan/zoom, Follow latest, themes and ResizeObserver cleanup. Lightweight Charts 5.2.1 uses Apache-2.0; creator/NOTICE attribution and TradingView link are displayed.
+- URL owns mode/search and account filters. Query data is not mirrored into Zustand.
+
+See [Market design](docs/MARKET_DESIGN.md) and [Product spec](docs/PRODUCT_SPEC.md). Selected legacy information hierarchy and interactions were reimplemented in React using the Client palette; no Vue source, styles, assets, private endpoints or account data were copied.
+
+## Verification
 
 ```bash
 npm run typecheck
@@ -36,64 +66,20 @@ npm run lint
 npm run format:check
 npm run test
 npm run build
-```
-
-## Browser verification
-
-Local verification (2026-10-09): 32 Vitest tests and 6 Chromium E2E cases passed.
-The browser cases cover three journeys at two viewport sizes; they are not six distinct workflows.
-Type checking, lint, formatting and production build also passed.
-
-Use Node.js 22.14 or newer in the Node 22 line. Install Chromium once, then run:
-
-```bash
 npx playwright install chromium
 npm run test:e2e
 ```
 
-The script builds the production bundle; Playwright setup starts and closes an in-process preview server on port 4174.
-Three journeys run at desktop (1440 × 1000) and mobile (390 × 844) sizes.
-Each test gets a fresh browser context. Vitest only collects tests under `src/`.
-Failure traces and the HTML report stay in ignored `test-results/` and `playwright-report/` directories.
-The GitHub workflow runs unit/component checks and Chromium journeys; remote CI status must be checked after pushing.
+Local verification on 2026-10-10: 52 Vitest tests and 16 Chromium E2E cases (eight journeys × desktop/mobile viewports). E2E uses fixed intercepted REST/WS payloads, independent of Binance availability. Cases cover markets, candles, rapid symbol/mode switching, login/history/focus, rate limits, inactive pairs, dark theme and existing account flows. Mobile means a viewport, not a physical device or Safari.
 
-## Preview
+Optional real-network smoke check, separate from CI:
 
-![Filtered activity timeline on desktop](docs/screenshots/desktop.png)
-
-<img src="docs/screenshots/mobile.png" width="390" alt="Filtered activity timeline on a narrow mobile viewport" />
-
-These screenshots use fictional data. Regenerate them from the protected activity browser journey (`activity.png`) after UI changes.
-
-## Architecture and decisions
-
-```mermaid
-flowchart LR
-  URL[Router and URL filters] --> UI[Feature pages]
-  UI --> Query[TanStack Query]
-  Query --> API[Typed local mock services]
-  Store[Zustand session and preferences] --> UI
+```bash
+npm run test:market-smoke
 ```
 
-- The URL owns list filters, sorting and pagination. Details preserve the originating list query through router history state.
-- TanStack Query owns request data and cache; Zustand owns browser session and display preferences. Query results are not copied into Zustand.
-- Mock reads accept `AbortSignal`; cleanup cancels pending timers. Retry policy distinguishes retryable service errors from missing records.
-- Display preferences persist in local storage; the mock login session lives in session storage. Browser tests verify persistence through reload.
-- Out-of-range pages are corrected without removing filters. Unexpected rendering failures expose recovery controls.
+It builds and opens production preview on port 4175, connects to public data and saves a dated JSON report and screenshot. The local BTCUSDT check on 2026-10-10 reached live with metadata/ticker/candles HTTP 200 and no page errors. This confirms that local environment at that time; deployment connectivity is not claimed.
 
-## Two-minute walkthrough
+## Limits
 
-1. Sign in to Overview and inspect the fictional account summary.
-2. Open Activity, filter the timeline, open a detail and return. Switch Demo state between normal, empty and error.
-3. Choose Dark and Compact in Preferences, reload, and verify the choices persist.
-
-## Limits and next steps
-
-This is a frontend demonstration. Route guards are not server authorization, and mock data is not shared between repositories.
-Notifications are read-only; marking them read is not implemented.
-No live connection, token refresh, performance benchmark, or public deployment is claimed.
-Mobile verification uses a Chromium viewport, not a physical device or Safari.
-Static hosting must rewrite application routes to `index.html` so direct links and refreshes work.
-The local preview is available with `npm run build` followed by `npm run preview`.
-
-No real API, account, transaction, or personal data is used or accepted by this project.
+No keys, account integration, orders, order book, trade tape, token refresh or official affiliation. Mock wallet data is unrelated to public prices. Notifications remain read-only. No public deployment, remote CI result, performance benchmark, physical-device or Safari verification is claimed. No leftward historical pagination; charts show bounded recent history. Visible tabs each own their connection without cross-tab leadership. Static hosting must rewrite app routes to `index.html`.
