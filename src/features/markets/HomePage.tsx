@@ -1,9 +1,11 @@
+import { formatLocale } from '@/i18n';
+import { translate, localize, useLocale } from '@/i18n';
 import { Link, useSearchParams } from 'react-router-dom';
 import { MARKET_SYMBOLS } from './types';
 import { useMarketFeed } from './useMarketFeed';
 import { formatPrice, MarketControls, useMarketMode } from './MarketControls';
-
 export default function HomePage() {
+  useLocale();
   const mode = useMarketMode();
   const [params, setParams] = useSearchParams();
   const feed = useMarketFeed(mode, MARKET_SYMBOLS);
@@ -14,34 +16,36 @@ export default function HomePage() {
   return (
     <div className="page-stack">
       <section className="welcome-panel market-hero">
-        <p className="eyebrow">Public market notebook</p>
-        <h1>A clear view of Spot markets.</h1>
+        <p className="eyebrow">{translate('Public market notebook')}</p>
+        <h1>{translate('A clear view of Spot markets.')}</h1>
         <p>
-          Three pairs. A rolling 24-hour view. Explore prices and one-minute candles without signing
-          in.
+          {translate(
+            'Three pairs. A rolling 24-hour view. Explore prices and one-minute candles without signing in.'
+          )}
         </p>
         <Link
           className="button button-light"
           to={`/markets/BTCUSDT${mode === 'demo' ? '?mode=demo' : ''}`}
         >
-          Explore markets <span aria-hidden="true">↗</span>
+          {translate('Explore markets')}
+          <span aria-hidden="true">↗</span>
         </Link>
         <p className="market-source">
-          Binance Spot public market data · Read only · Unofficial product
+          {translate('Binance Spot public market data \u00B7 Read only \u00B7 Unofficial product')}
         </p>
       </section>
       <section className="account-panel" id="market-watchlist" aria-labelledby="watchlist-title">
         <div className="account-panel-heading">
           <div>
-            <p className="eyebrow">A focused watchlist</p>
-            <h2 id="watchlist-title">Market overview</h2>
+            <p className="eyebrow">{translate('A focused watchlist')}</p>
+            <h2 id="watchlist-title">{translate('Market overview')}</h2>
           </div>
           <div className="activity-field">
-            <label htmlFor="market-search">Search pairs</label>
+            <label htmlFor="market-search">{translate('Search pairs')}</label>
             <input
               id="market-search"
               value={search}
-              placeholder="BTC, ETH or SOL"
+              placeholder={translate('BTC, ETH or SOL')}
               onChange={(event) => {
                 const next = new URLSearchParams(params);
                 if (event.target.value) next.set('search', event.target.value);
@@ -52,19 +56,23 @@ export default function HomePage() {
           </div>
         </div>
         <MarketControls feed={feed} />
-        {!rows.length && <p className="activity-message">No supported pairs match your search.</p>}
+        {!rows.length && (
+          <p className="activity-message">{translate('No supported pairs match your search.')}</p>
+        )}
         {rows.length > 0 && (
           <div className="market-table-wrap">
             <table className="market-table">
               <caption className="sr-only">
-                Selected Spot pairs, prices in USDT, rolling 24-hour change and quote volume
+                {translate(
+                  'Selected Spot pairs, prices in USDT, rolling 24-hour change and quote volume'
+                )}
               </caption>
               <thead>
                 <tr>
-                  <th scope="col">Pair</th>
-                  <th scope="col">Price · USDT</th>
-                  <th scope="col">24h change</th>
-                  <th scope="col">24h volume · USDT</th>
+                  <th scope="col">{translate('Pair')}</th>
+                  <th scope="col">{translate('Price \u00B7 USDT')}</th>
+                  <th scope="col">{translate('24h change')}</th>
+                  <th scope="col">{translate('24h volume \u00B7 USDT')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -75,23 +83,31 @@ export default function HomePage() {
                     <tr key={symbol}>
                       <th scope="row">
                         <Link to={`/markets/${symbol}${mode === 'demo' ? '?mode=demo' : ''}`}>
-                          {symbol.replace('USDT', '')}
+                          {localize(symbol.replace('USDT', ''))}
                           <span className="muted"> / USDT ↗</span>
                         </Link>
                         {instrument && (instrument.status !== 'TRADING' || !instrument.spot) && (
-                          <small>Spot trading unavailable</small>
+                          <small>{translate('Spot trading unavailable')}</small>
                         )}
                       </th>
-                      <td>{ticker ? formatPrice(ticker.price, instrument?.precision) : '—'}</td>
+                      <td>
+                        {localize(ticker ? formatPrice(ticker.price, instrument?.precision) : '—')}
+                      </td>
                       <td className={ticker && ticker.change >= 0 ? 'market-up' : 'market-down'}>
-                        {ticker
-                          ? `${ticker.change >= 0 ? '+' : ''}${ticker.change.toFixed(2)}%`
-                          : '—'}
+                        {localize(
+                          ticker
+                            ? `${ticker.change >= 0 ? '+' : ''}${ticker.change.toFixed(2)}%`
+                            : '—'
+                        )}
                       </td>
                       <td>
-                        {ticker
-                          ? ticker.quoteVolume.toLocaleString('en-US', { maximumFractionDigits: 0 })
-                          : '—'}
+                        {localize(
+                          ticker
+                            ? ticker.quoteVolume.toLocaleString(formatLocale(), {
+                                maximumFractionDigits: 0
+                              })
+                            : '—'
+                        )}
                       </td>
                     </tr>
                   );
@@ -101,18 +117,21 @@ export default function HomePage() {
           </div>
         )}
         <p className="muted">
-          Volume is quote-asset turnover in USDT over the rolling previous 24 hours. Market prices
-          are separate from the fictional demo wallet.
+          {translate(
+            'Volume is quote-asset turnover in USDT over the rolling previous 24 hours. Market prices are separate from the fictional demo wallet.'
+          )}
         </p>
       </section>
       <section className="section-heading">
         <div>
-          <p className="eyebrow">A separate demo space</p>
-          <h2>Your account, in context.</h2>
+          <p className="eyebrow">{translate('A separate demo space')}</p>
+          <h2>{translate('Your account, in context.')}</h2>
         </div>
-        <p>The wallet, activity and notifications use locally authored fictional data.</p>
+        <p>
+          {translate('The wallet, activity and notifications use locally authored fictional data.')}
+        </p>
         <Link className="button button-primary" to="/wallet/overview">
-          Explore demo wallet
+          {translate('Explore demo wallet')}
         </Link>
       </section>
     </div>

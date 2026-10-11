@@ -14,13 +14,20 @@
     "test": "vitest run",
     "test:e2e": "npm run build && playwright test",
     "test:market-smoke": "npm run build && node scripts/market-smoke.mjs",
-    "screenshots:markets": "npm run build && node scripts/capture-markets.mjs"
+    "screenshots:markets": "npm run build && node scripts/capture-markets.mjs",
+    "prebuild": "node scripts/build-locales.mjs",
+    "pretypecheck": "node scripts/build-locales.mjs",
+    "pretest": "node scripts/build-locales.mjs",
+    "predev": "node scripts/build-locales.mjs",
+    "test:i18n": "node scripts/build-locales.mjs"
   },
   "dependencies": {
     "@tanstack/react-query": "5.104.1",
+    "i18next": "^26.4.3",
     "lightweight-charts": "^5.2.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "react-i18next": "^17.0.16",
     "react-router-dom": "7.18.4",
     "zustand": "5.0.15"
   },

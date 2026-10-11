@@ -1,11 +1,13 @@
+import { formatLocale } from '@/i18n';
+import { translate, localize, useLocale } from '@/i18n';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { isMarketSymbol, MARKET_SYMBOLS, type MarketSymbol } from './types';
 import { useMarketFeed } from './useMarketFeed';
 import { formatPrice, MarketControls, useMarketMode } from './MarketControls';
 import { CandleChart } from './CandleChart';
 import { RecentTrades } from './RecentTrades';
-
 function MarketDetail({ symbol }: { symbol: MarketSymbol }) {
+  useLocale();
   const mode = useMarketMode();
   const navigate = useNavigate();
   // A stable allowlist owns one connection; changes remount this detail slice.
@@ -19,16 +21,18 @@ function MarketDetail({ symbol }: { symbol: MarketSymbol }) {
   return (
     <div className="page-stack">
       <Link className="back-link" to={`/${mode === 'demo' ? '?mode=demo' : ''}`}>
-        ← Back to home
+        {translate('\u2190 Back to home')}
       </Link>
       <section className="account-panel">
         <div className="account-panel-heading">
           <div>
-            <p className="eyebrow">Binance Spot · Public · Read only · Unofficial</p>
-            <h1>{symbol.replace('USDT', '')} / USDT</h1>
+            <p className="eyebrow">
+              {translate('Binance Spot \u00B7 Public \u00B7 Read only \u00B7 Unofficial')}
+            </p>
+            <h1>{translate('{{v0}} / USDT', { v0: localize(symbol.replace('USDT', '')) })}</h1>
           </div>
           <div className="activity-field">
-            <label htmlFor="market-pair">Trading pair</label>
+            <label htmlFor="market-pair">{translate('Trading pair')}</label>
             <select
               id="market-pair"
               value={symbol}
@@ -38,31 +42,37 @@ function MarketDetail({ symbol }: { symbol: MarketSymbol }) {
             >
               {MARKET_SYMBOLS.map((pair) => (
                 <option key={pair} value={pair}>
-                  {pair.replace('USDT', '')} / USDT
+                  {translate('{{v0}} / USDT', { v0: localize(pair.replace('USDT', '')) })}
                 </option>
               ))}
             </select>
           </div>
         </div>
         <MarketControls feed={feed} />
-        {unavailable && <p role="alert">This pair is currently unavailable for Spot trading.</p>}
+        {unavailable && (
+          <p role="alert">{translate('This pair is currently unavailable for Spot trading.')}</p>
+        )}
         {ticker && (
           <div className="market-summary">
             <div>
-              <span>Last price · USDT</span>
-              <strong>{formatPrice(ticker.price, instrument?.precision)}</strong>
+              <span>{translate('Last price \u00B7 USDT')}</span>
+              <strong>{localize(formatPrice(ticker.price, instrument?.precision))}</strong>
             </div>
             <div>
-              <span>24h change</span>
+              <span>{translate('24h change')}</span>
               <strong className={ticker.change >= 0 ? 'market-up' : 'market-down'}>
-                {ticker.change >= 0 ? '+' : ''}
-                {ticker.change.toFixed(2)}%
+                {translate('{{v0}}{{v1}}%', {
+                  v0: localize(ticker.change >= 0 ? '+' : ''),
+                  v1: localize(ticker.change.toFixed(2))
+                })}
               </strong>
             </div>
             <div>
-              <span>24h volume · USDT</span>
+              <span>{translate('24h volume \u00B7 USDT')}</span>
               <strong>
-                {ticker.quoteVolume.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                {localize(
+                  ticker.quoteVolume.toLocaleString(formatLocale(), { maximumFractionDigits: 0 })
+                )}
               </strong>
             </div>
           </div>
@@ -75,14 +85,17 @@ function MarketDetail({ symbol }: { symbol: MarketSymbol }) {
           />
         ) : (
           <p className="activity-message">
-            {feed.status === 'connecting'
-              ? 'Loading one-minute candle history…'
-              : 'No candle history is available. Retry or select fixed demonstration data.'}
+            {localize(
+              feed.status === 'connecting'
+                ? 'Loading one-minute candle history…'
+                : 'No candle history is available. Retry or select fixed demonstration data.'
+            )}
           </p>
         )}
         <p className="muted">
-          One-minute UTC candles. Initial history contains up to 300 candles; the session keeps at
-          most 500. Pan or zoom to inspect. No trading actions are available.
+          {translate(
+            'One-minute UTC candles. Initial history contains up to 300 candles; the session keeps at most 500. Pan or zoom to inspect. No trading actions are available.'
+          )}
         </p>
       </section>
       <RecentTrades
@@ -100,17 +113,20 @@ const SYMBOL_SELECTIONS = {
   SOLUSDT: ['SOLUSDT']
 } as const;
 export default function MarketDetailPage() {
+  useLocale();
   const { symbol = '' } = useParams();
   if (!isMarketSymbol(symbol))
     return (
       <section className="account-panel">
-        <p className="eyebrow">Market unavailable</p>
+        <p className="eyebrow">{translate('Market unavailable')}</p>
         <h1>
-          {/^[A-Z0-9]{5,20}$/.test(symbol) ? 'Unsupported trading pair' : 'Unknown trading pair'}
+          {localize(
+            /^[A-Z0-9]{5,20}$/.test(symbol) ? 'Unsupported trading pair' : 'Unknown trading pair'
+          )}
         </h1>
-        <p>This watchlist supports BTC / USDT, ETH / USDT and SOL / USDT.</p>
+        <p>{translate('This watchlist supports BTC / USDT, ETH / USDT and SOL / USDT.')}</p>
         <Link className="button button-primary" to="/">
-          Go to markets
+          {translate('Go to markets')}
         </Link>
       </section>
     );

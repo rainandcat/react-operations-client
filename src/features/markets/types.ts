@@ -49,6 +49,7 @@ export interface FeedState extends MarketSnapshot {
   trades: MarketTrade[];
   status: FeedStatus;
   message: string;
+  publicMessage?: { code: 'retry' | 'unavailable'; retryAt?: number; rateLimited: boolean };
   updatedAt: number | null;
 }
 export function isMarketSymbol(value: string): value is MarketSymbol {

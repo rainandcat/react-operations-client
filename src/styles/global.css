@@ -1,6 +1,50 @@
 @import './tokens.css';
 @import './markets.css';
 
+:root[data-theme='dark'] {
+  --canvas: #151c2c;
+  --ink: #f4f5fa;
+  --muted: #b9c3d6;
+  --surface: #202a3f;
+  --accent: #b9c5ff;
+  --accent-soft: #2e3b65;
+  --border: #46516b;
+}
+
+[dir='rtl'] .client-header,
+[dir='rtl'] .dialog-heading,
+[dir='rtl'] .section-heading,
+[dir='rtl'] .account-panel-heading {
+  text-align: start;
+}
+[dir='rtl'] .eyebrow {
+  letter-spacing: normal;
+}
+[dir='rtl'] .market-table th,
+[dir='rtl'] .market-table td {
+  text-align: end;
+}
+[dir='rtl'] .market-table th:first-child,
+[dir='rtl'] .market-table td:first-child {
+  text-align: start;
+}
+.market-table td,
+.candle-chart,
+.candle-values dd,
+.activity-amount strong,
+input[type='email'],
+input[type='password'],
+#pair-search {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+[dir='rtl'] .activity-monogram {
+  direction: ltr;
+}
+.client-header {
+  flex-wrap: wrap;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -748,4 +792,24 @@ button {
   .activity-amount {
     max-width: 8rem;
   }
+}
+
+.language-control {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+}
+.language-control select {
+  max-width: 10rem;
+  min-height: 2.5rem;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.6rem;
+  padding: 0.4rem 0.6rem;
+}
+.language-control [role='alert'] {
+  flex-basis: 100%;
 }

@@ -26,6 +26,8 @@ describe('display preferences', () => {
       </MemoryRouter>
     );
     const shell = container.querySelector('.client-shell');
+    expect(shell?.getAttribute('data-theme')).toBe('dark');
+    await user.click(screen.getByRole('radio', { name: 'Light' }));
     expect(shell?.getAttribute('data-theme')).toBe('light');
     await user.click(screen.getByRole('radio', { name: 'Dark' }));
     await user.click(screen.getByRole('radio', { name: 'Compact' }));
@@ -33,7 +35,7 @@ describe('display preferences', () => {
     expect(shell?.getAttribute('data-density')).toBe('compact');
     expect(localStorage.getItem('operations-client-display-preferences')).toContain('dark');
     await user.click(screen.getByRole('button', { name: 'Restore defaults' }));
-    expect(shell?.getAttribute('data-theme')).toBe('light');
+    expect(shell?.getAttribute('data-theme')).toBe('dark');
     expect(shell?.getAttribute('data-density')).toBe('comfortable');
   });
 });

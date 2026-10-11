@@ -15,16 +15,24 @@ interface PreferencesState {
 export const usePreferences = create<PreferencesState>()(
   persist(
     (set) => ({
-      theme: 'light',
+      theme: 'dark',
       density: 'comfortable',
       setTheme: (theme) => set({ theme }),
       setDensity: (density) => set({ density }),
-      reset: () => set({ theme: 'light', density: 'comfortable' })
+      reset: () => set({ theme: 'dark', density: 'comfortable' })
     }),
     {
       name: 'operations-client-display-preferences',
       storage: createJSONStorage(() => localStorage),
-      partialize: ({ theme, density }) => ({ theme, density })
+      partialize: ({ theme, density }) => ({ theme, density }),
+      merge: (saved, current) => {
+        const value = saved as Partial<PreferencesState> | undefined;
+        return {
+          ...current,
+          theme: value?.theme === 'light' ? 'light' : 'dark',
+          density: value?.density === 'compact' ? 'compact' : 'comfortable'
+        };
+      }
     }
   )
 );
