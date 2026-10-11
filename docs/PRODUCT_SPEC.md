@@ -1,6 +1,6 @@
 # React Operations Client product specification
 
-Implemented state as of 2026-10-10. Public market data and fictional accounts are separate domains. The application is read only and unofficial.
+Implemented state as of 2026-10-11. Public market data and fictional accounts are separate domains. The application is read only and unofficial.
 
 ## Public routes
 
@@ -29,6 +29,8 @@ Demo account: member@demo.invalid / demo123. This is not Binance authentication 
 Wallet Overview shows the existing single fictional balance prominently, then account ID and update time; no invented wallets or financial actions. Activity and notification mock APIs remain independent. URL filters/pagination support loading/error/empty states; activity details preserve return filters. Notifications are read-only. Theme/list density persist in local storage and apply to public and protected pages.
 
 ## Market contracts
+
+Detail includes a recent trades table: price in USDT, quantity in the base asset, execution time in UTC and explicit taker Buy/Sell. The shared socket subscribes to `@trade`; newest 50 executions are deduplicated by ID and sorted by execution time. Live publications batch at 250ms. No historical trade request or gap backfill occurs; reconnection restarts the list. Paused records are labelled, and a healthy quiet stream has an explicit waiting state. Fixed demonstration supplies separate locally authored executions.
 
 REST initializes metadata, ticker and up to 300 1m candles. Native WS updates selected ticker/kline streams. Page-owned subscriptions buffer before history, discard late generations, merge same candles, bound memory, detect gaps and resynchronize. Hidden/offline closes streams; foreground reloads history. Each visible tab owns its socket. No keys, signed requests or private streams.
 

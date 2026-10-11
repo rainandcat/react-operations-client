@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   mergeCandle,
+  mergeTrade,
   numeric,
   parseCandles,
   parseEvent,
@@ -21,6 +22,60 @@ const candle: Candle = {
   eventTime: time + 1000
 };
 describe('public market payload contracts', () => {
+  it('parses raw trade ID, base quantity, UTC execution time and taker side', () => {
+    const payload = {
+      e: 'trade',
+      E: time + 5,
+      T: time,
+      s: 'BTCUSDT',
+      t: 7,
+      p: '62000.01',
+      q: '0.00001',
+      m: true
+    };
+    const event = parseEvent({ stream: 'btcusdt@trade', data: payload });
+    expect(event).toMatchObject({
+      type: 'trade',
+      symbol: 'BTCUSDT',
+      trade: { id: 7, price: 62000.01, quantity: 0.00001, side: 'sell', tradeTime: time }
+    });
+    expect(parseEvent({ ...payload, m: false })).toMatchObject({ trade: { side: 'buy' } });
+    for (const invalid of [
+      { t: -1 },
+      { t: 1.2 },
+      { t: Number.MAX_SAFE_INTEGER + 1 },
+      { q: '0' },
+      { q: 'NaN' },
+      { m: 'true' },
+      { s: 'UNKNOWN' },
+      { T: time + 10 }
+    ])
+      expect(() => parseEvent({ ...payload, ...invalid })).toThrow();
+  });
+  it('deduplicates and bounds trades, ordering by execution time with an ID tie-break', () => {
+    const event = parseEvent({
+      e: 'trade',
+      E: time,
+      T: time,
+      s: 'BTCUSDT',
+      t: 1,
+      p: '100',
+      q: '0.01',
+      m: false
+    });
+    if (event.type !== 'trade') throw new Error('Expected trade.');
+    const rows = Array.from({ length: 50 }, (_, index) => ({
+      ...event.trade,
+      id: index + 1,
+      tradeTime: time - index
+    }));
+    expect(mergeTrade(rows, rows[0])).toBe(rows);
+    const merged = mergeTrade(rows, { ...event.trade, id: 60 });
+    expect(merged).toHaveLength(50);
+    expect(merged[0].id).toBe(60);
+    expect(merged[1].id).toBe(1);
+    expect(mergeTrade(merged, { ...event.trade, id: 70, tradeTime: time - 1000 })).toEqual(merged);
+  });
   it('rejects blank, nonfinite and invalid prices without inventing zero values', () => {
     for (const invalid of ['', ' ', null, true, {}, 'NaN', 'Infinity'])
       expect(() => numeric(invalid)).toThrow();

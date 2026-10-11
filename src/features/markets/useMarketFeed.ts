@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { MarketFeed, EMPTY_FEED } from './marketFeed';
 import { useMarketApi } from './MarketProvider';
-import { fixtureSnapshot } from './fixtures';
+import { fixtureSnapshot, fixtureTrades } from './fixtures';
 import { type FeedState, type MarketMode, type MarketSymbol } from './types';
 
 export function useMarketFeed(
@@ -29,6 +29,7 @@ export function useMarketFeed(
     mode === 'demo'
       ? {
           ...fixtureSnapshot(symbols, detail),
+          trades: detail ? fixtureTrades(detail) : [],
           status: 'demo',
           message: 'Fixed demonstration data · 15 Jan 2026 · No live connection',
           updatedAt: Date.UTC(2026, 0, 15, 12, 59)

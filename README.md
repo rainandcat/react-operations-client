@@ -5,7 +5,7 @@ A React + TypeScript portfolio app with a public Spot market notebook and a sepa
 ## Explore
 
 - Public `/`: searchable BTC/USDT, ETH/USDT and SOL/USDT watchlist with price, rolling 24h change and USDT quote volume.
-- Public `/markets/:symbol`: 24h summary and interactive one-minute UTC candles, connection state and recovery.
+- Public `/markets/:symbol`: 24h summary, interactive one-minute UTC candles and recent executions, connection state and recovery.
 - Shared demo sign-in dialog: stays on the current public page or returns to the requested protected URL. Cancel clears the destination; reload and browser history preserve dialog state.
 - Protected `/wallet/overview`, `/activity`, `/activity/:activityId`, `/notifications`, `/preferences`: fictional balance/records, URL filters/pagination, persistent light/dark theme and list density.
 - Removed `/overview` and `/sign-in` return 404.
@@ -51,7 +51,8 @@ flowchart LR
 - Query owns metadata and REST snapshots. One market API instance coordinates rate-limit cooldown; Query does not multiply retries. Requests cancel with their page/connection attempt.
 - Each mounted market page owns one socket per visible tab. Background/offline closes it; foreground, reconnect and candle gaps resynchronize history before live.
 - Events buffer while REST loads, with generation checks for late results. Candles merge by open time/event time and never reopen after closure. Limits: 300 initial candles, 500 retained, 1,000 buffered events.
-- Every selected stream must be fresh before live. A 15s stale threshold and bounded jittered reconnect protect recovery. WS failure retains a labelled stale snapshot. 429/418 honor Retry-After, including manual retry.
+- Ticker and candle streams must be fresh before live. A 15s stale threshold and bounded jittered reconnect protect recovery. Quiet trade streams do not imply a failed connection. WS failure retains a labelled stale snapshot. 429/418 honor Retry-After, including manual retry.
+- Detail shares its socket with `@trade`: retain 50 executions, deduplicate IDs, order by execution time, and batch live publications every 250ms. Quantity is in the base asset; Buy/Sell is the taker side. Reconnection resets the list without backfilling disconnected periods.
 - Live and fixture data stay separate. Invalid payloads fail rather than becoming zero prices. Metadata excludes non-Spot/inactive instruments.
 - Charts support pan/zoom, Follow latest, themes and ResizeObserver cleanup. Lightweight Charts 5.2.1 uses Apache-2.0; creator/NOTICE attribution and TradingView link are displayed.
 - URL owns mode/search and account filters. Query data is not mirrored into Zustand.
@@ -70,7 +71,7 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-Local verification on 2026-10-10: 52 Vitest tests and 16 Chromium E2E cases (eight journeys × desktop/mobile viewports). E2E uses fixed intercepted REST/WS payloads, independent of Binance availability. Cases cover markets, candles, rapid symbol/mode switching, login/history/focus, rate limits, inactive pairs, dark theme and existing account flows. Mobile means a viewport, not a physical device or Safari.
+Local verification on 2026-10-11: 60 Vitest tests and 18 Chromium E2E cases (nine journeys × desktop/mobile viewports). E2E uses fixed intercepted REST/WS payloads, independent of Binance availability. Cases cover markets, candles, trade bursts/deduplication/quiet streams, rapid symbol/mode switching, login/history/focus, rate limits, inactive pairs, dark theme and existing account flows. Mobile means a viewport, not a physical device or Safari.
 
 Optional real-network smoke check, separate from CI:
 
@@ -78,8 +79,8 @@ Optional real-network smoke check, separate from CI:
 npm run test:market-smoke
 ```
 
-It builds and opens production preview on port 4175, connects to public data and saves a dated JSON report and screenshot. The local BTCUSDT check on 2026-10-10 reached live with metadata/ticker/candles HTTP 200 and no page errors. This confirms that local environment at that time; deployment connectivity is not claimed.
+It builds and opens production preview on port 4175, connects to public data and saves a dated JSON report and screenshot. The local BTCUSDT check on 2026-10-11 reached live with metadata/ticker/candles HTTP 200, received trade events and had no page errors. This confirms that local environment at that time; deployment connectivity is not claimed.
 
 ## Limits
 
-No keys, account integration, orders, order book, trade tape, token refresh or official affiliation. Mock wallet data is unrelated to public prices. Notifications remain read-only. No public deployment, remote CI result, performance benchmark, physical-device or Safari verification is claimed. No leftward historical pagination; charts show bounded recent history. Visible tabs each own their connection without cross-tab leadership. Static hosting must rewrite app routes to `index.html`.
+No keys, account integration, orders, order book, token refresh or official affiliation. Mock wallet data is unrelated to public prices. Notifications remain read-only. No public deployment, remote CI result, performance benchmark, physical-device or Safari verification is claimed. No leftward historical pagination; charts show bounded recent history. Visible tabs each own their connection without cross-tab leadership. Static hosting must rewrite app routes to `index.html`.

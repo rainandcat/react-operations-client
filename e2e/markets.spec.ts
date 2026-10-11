@@ -1,6 +1,81 @@
 import { expect, test } from '@playwright/test';
 import { installMarketFixtures } from './marketFixtures';
 
+test('recent trades deduplicate bursts, isolate pairs and keep explicit fixture mode', async ({
+  page
+}) => {
+  const fixtures = await installMarketFixtures(page, { sendTrades: false });
+  await page.goto('/?mode=demo');
+  await page.getByRole('link', { name: 'Explore markets', exact: true }).click();
+  await expect(page).toHaveURL(/\/markets\/BTCUSDT\?mode=demo$/);
+  await page.getByRole('link', { name: '← Back to home' }).click();
+  await page.getByRole('link', { name: 'Markets', exact: true }).click();
+  await expect(page).toHaveURL(/\/markets\/BTCUSDT$/);
+  await expect(page.getByRole('status').filter({ hasText: 'Live · Binance Spot' })).toBeVisible();
+  await expect(
+    page.getByText('Waiting for new executions. No trade history is loaded.')
+  ).toBeVisible();
+  const socket = fixtures.sockets.at(-1)!;
+  expect(new URL(socket.url()).searchParams.get('streams')).toContain('btcusdt@trade');
+  const now = Date.now();
+  for (let id = 1; id <= 200; id++)
+    socket.send(
+      JSON.stringify({
+        e: 'trade',
+        E: now,
+        T: now,
+        s: 'BTCUSDT',
+        t: id,
+        p: '60000',
+        q: '0.002',
+        m: id % 2 === 0
+      })
+    );
+  socket.send(
+    JSON.stringify({
+      e: 'trade',
+      E: now,
+      T: now,
+      s: 'BTCUSDT',
+      t: 200,
+      p: '60000',
+      q: '999',
+      m: true
+    })
+  );
+  const rows = page.locator('.trade-table tbody tr');
+  await expect(rows).toHaveCount(50);
+  await expect(rows.first()).toHaveAttribute('data-trade-id', '200');
+  await expect(rows.first()).toContainText('Sell');
+  await expect(rows.first()).toContainText('0.002');
+  await page.getByLabel('Trading pair').selectOption('ETHUSDT');
+  await expect(page.getByRole('status').filter({ hasText: 'Live · Binance Spot' })).toBeVisible();
+  await expect(rows).toHaveCount(0);
+  await expect.poll(() => fixtures.closed.has(socket)).toBe(true);
+  const time = Date.now();
+  fixtures.sockets.at(-1)!.send(
+    JSON.stringify({
+      e: 'trade',
+      E: time,
+      T: time,
+      s: 'ETHUSDT',
+      t: 1,
+      p: '3200',
+      q: '0.3',
+      m: false
+    })
+  );
+  await expect(rows).toHaveCount(1);
+  await expect(page.getByRole('columnheader', { name: 'Quantity · ETH' })).toBeVisible();
+  await page.getByLabel('Market data').selectOption('demo');
+  await expect(rows).toHaveCount(50);
+  await expect(rows.first()).toHaveAttribute('data-trade-id', '1000');
+  await expect.poll(() => fixtures.closed.size).toBe(fixtures.sockets.length);
+  await expect
+    .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth))
+    .toBe(true);
+});
+
 test('public markets, candles, pair switching and explicit fixture isolation', async ({
   page
 }, testInfo) => {

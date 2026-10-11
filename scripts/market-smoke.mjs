@@ -37,12 +37,23 @@ try {
   } catch {
     /* Record unavailable instead of claiming success. */
   }
+  let tradesReceived = false;
+  if (live) {
+    try {
+      await page.locator('.trade-table tbody tr').first().waitFor({ timeout: 10_000 });
+      tradesReceived = true;
+    } catch {
+      /* A successful market connection does not prove trade reception. */
+    }
+  }
   const chartHeading = page.locator('.chart-heading p');
   const report = {
     checkedAt: new Date().toISOString(),
     environment: 'Local Chromium production preview',
     pair: 'BTCUSDT',
     live,
+    tradesReceived,
+    tradeRows: await page.locator('.trade-table tbody tr').count(),
     status: await feed.getAttribute('data-status'),
     message: await feed.innerText(),
     candleCount: (await chartHeading.count()) ? await chartHeading.textContent() : null,
@@ -59,7 +70,7 @@ try {
     fullPage: true
   });
   console.log(JSON.stringify(report, null, 2));
-  if (!live || errors.length) process.exitCode = 1;
+  if (!live || !tradesReceived || errors.length) process.exitCode = 1;
 } finally {
   await browser?.close();
   await new Promise((resolve, reject) =>

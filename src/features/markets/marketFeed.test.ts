@@ -91,6 +91,102 @@ function setup(
   return { feed, sockets, states, factory, latest: () => states.at(-1)! };
 }
 describe('market subscription lifecycle', () => {
+  it('receives bounded trades before REST completes without overflowing the candle buffer', async () => {
+    let resolve!: (value: MarketSnapshot) => void;
+    const ctx = setup(
+      () =>
+        new Promise((done) => {
+          resolve = done;
+        })
+    );
+    await vi.advanceTimersByTimeAsync(0);
+    for (let id = 1; id <= 2000; id++)
+      ctx.sockets[0].send({
+        e: 'trade',
+        E: Date.now(),
+        T: Date.now(),
+        s: 'BTCUSDT',
+        t: id,
+        p: '104',
+        q: '0.01',
+        m: false
+      });
+    resolve(snapshot());
+    await vi.advanceTimersByTimeAsync(0);
+    expect(ctx.latest().trades).toHaveLength(50);
+    expect(ctx.latest().trades[0].id).toBe(2000);
+    expect(ctx.sockets).toHaveLength(1);
+  });
+  it('batches a trade burst into one publication without duplicates or rebuilding candles', async () => {
+    const ctx = setup();
+    await vi.advanceTimersByTimeAsync(0);
+    ctx.sockets[0].send(ticker());
+    ctx.sockets[0].send(kline());
+    const candleRows = ctx.latest().candles;
+    const before = ctx.states.length;
+    const payload = (id: number) => ({
+      e: 'trade',
+      E: Date.now(),
+      T: Date.now(),
+      s: 'BTCUSDT',
+      t: id,
+      p: '104',
+      q: '0.01',
+      m: id % 2 === 0
+    });
+    for (let id = 1; id <= 1000; id++) ctx.sockets[0].send(payload(id));
+    ctx.sockets[0].send(payload(1000));
+    expect(ctx.states).toHaveLength(before);
+    await vi.advanceTimersByTimeAsync(250);
+    expect(ctx.states).toHaveLength(before + 1);
+    expect(ctx.latest().trades).toHaveLength(50);
+    expect(ctx.latest().trades[0].id).toBe(1000);
+    expect(ctx.latest().candles).toBe(candleRows);
+    ctx.sockets[0].send(payload(1001));
+    ctx.feed.stop();
+    const count = ctx.states.length;
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(ctx.states).toHaveLength(count);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+  it('keeps the market live while trades are idle and resets executions on reconnect', async () => {
+    const ctx = setup();
+    await vi.advanceTimersByTimeAsync(0);
+    ctx.sockets[0].send(ticker());
+    ctx.sockets[0].send(kline());
+    expect(ctx.latest().status).toBe('live');
+    expect(ctx.latest().trades).toHaveLength(0);
+    ctx.sockets[0].send({
+      e: 'trade',
+      E: Date.now(),
+      T: Date.now(),
+      s: 'BTCUSDT',
+      t: 1,
+      p: '104',
+      q: '0.01',
+      m: false
+    });
+    await vi.advanceTimersByTimeAsync(250);
+    expect(ctx.latest().trades).toHaveLength(1);
+    const lateHandler = ctx.sockets[0].onmessage!;
+    ctx.sockets[0].send({ e: 'serverShutdown' });
+    expect(ctx.latest().trades).toHaveLength(1);
+    await vi.advanceTimersToNextTimerAsync();
+    expect(ctx.latest().trades).toHaveLength(0);
+    lateHandler({
+      data: JSON.stringify({
+        e: 'trade',
+        E: Date.now(),
+        T: Date.now(),
+        s: 'BTCUSDT',
+        t: 2,
+        p: '104',
+        q: '0.01',
+        m: false
+      })
+    });
+    expect(ctx.latest().trades).toHaveLength(0);
+  });
   it('buffers WS before REST and preserves newer same-candle updates without duplicates', async () => {
     let resolve!: (value: MarketSnapshot) => void;
     const ctx = setup(
@@ -111,6 +207,7 @@ describe('market subscription lifecycle', () => {
     expect(ctx.latest().candles[0].close).toBe(104);
     ctx.sockets[0].send(kline(time, true));
     ctx.sockets[0].send(kline(time, false, Date.now() + 1));
+    await vi.advanceTimersByTimeAsync(250);
     expect(ctx.latest().candles[0].closed).toBe(true);
   });
   it('ignores late responses/messages and clears timers when stopped or remounted', async () => {

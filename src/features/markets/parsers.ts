@@ -3,6 +3,7 @@ import {
   type Candle,
   type Instrument,
   type MarketEvent,
+  type MarketTrade,
   type Ticker
 } from './types';
 
@@ -110,6 +111,28 @@ export function parseEvent(value: unknown): MarketEvent {
   const row = 'data' in envelope ? object(envelope.data) : envelope;
   if (row.e === 'serverShutdown') return { type: 'shutdown' };
   if (row.e === '24hrTicker') return { type: 'ticker', ticker: parseTicker(row, true) };
+  if (row.e === 'trade') {
+    if (typeof row.s !== 'string' || !isMarketSymbol(row.s) || typeof row.m !== 'boolean')
+      throw new Error('Invalid trade stream.');
+    const id = numeric(row.t, 0);
+    const tradeTime = timestamp(row.T);
+    const eventTime = timestamp(row.E);
+    if (!Number.isSafeInteger(id) || tradeTime > eventTime)
+      throw new Error('Invalid trade identifier or time.');
+    return {
+      type: 'trade',
+      symbol: row.s,
+      trade: {
+        symbol: row.s,
+        id,
+        price: numeric(row.p, Number.MIN_VALUE),
+        quantity: numeric(row.q, Number.MIN_VALUE),
+        tradeTime,
+        eventTime,
+        side: row.m ? 'sell' : 'buy'
+      }
+    };
+  }
   if (row.e !== 'kline' || typeof row.s !== 'string' || !isMarketSymbol(row.s))
     throw new Error('Unexpected stream event.');
   const k = object(row.k);
@@ -131,6 +154,13 @@ export function parseEvent(value: unknown): MarketEvent {
       eventTime: timestamp(row.E)
     })
   };
+}
+export const TRADE_LIMIT = 50;
+export function mergeTrade(trades: MarketTrade[], next: MarketTrade): MarketTrade[] {
+  if (trades.some((trade) => trade.symbol === next.symbol && trade.id === next.id)) return trades;
+  return [...trades, next]
+    .sort((a, b) => b.tradeTime - a.tradeTime || b.id - a.id)
+    .slice(0, TRADE_LIMIT);
 }
 export function mergeCandle(candles: Candle[], next: Candle): Candle[] {
   const latest = candles.at(-1);

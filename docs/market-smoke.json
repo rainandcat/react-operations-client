@@ -1,10 +1,12 @@
 {
-  "checkedAt": "2026-10-09T20:32:59.317Z",
+  "checkedAt": "2026-10-10T20:58:34.471Z",
   "environment": "Local Chromium production preview",
   "pair": "BTCUSDT",
   "live": true,
+  "tradesReceived": true,
+  "tradeRows": 4,
   "status": "live",
-  "message": "Live\nLive · Binance Spot public market data\nSource time: 2026-10-09 20:32:58 UTC",
+  "message": "Live\nLive · Binance Spot public market data\nSource time: 2026-10-10 20:58:32 UTC",
   "candleCount": "1 minute · UTC · 300 candles",
   "responses": [
     {

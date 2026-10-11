@@ -1,7 +1,7 @@
 import type { Page, WebSocketRoute } from '@playwright/test';
 import { MARKET_SYMBOLS } from '../src/features/markets/types';
 
-export async function installMarketFixtures(page: Page) {
+export async function installMarketFixtures(page: Page, options: { sendTrades?: boolean } = {}) {
   const sockets: WebSocketRoute[] = [];
   const closed = new Set<WebSocketRoute>();
   await page.route('https://data-api.binance.vision/**', async (route) => {
@@ -56,8 +56,24 @@ export async function installMarketFixtures(page: Page) {
     sockets.push(ws);
     const url = new URL(ws.url());
     const streams = (url.searchParams.get('streams') ?? '').split('/');
+    let tradeId = 0;
     const timer = setInterval(() => {
       for (const symbol of MARKET_SYMBOLS) {
+        if (options.sendTrades !== false && streams.includes(`${symbol.toLowerCase()}@trade`)) {
+          const now = Date.now();
+          ws.send(
+            JSON.stringify({
+              e: 'trade',
+              E: now,
+              s: symbol,
+              t: ++tradeId,
+              p: '60000',
+              q: '0.002',
+              T: now,
+              m: tradeId % 2 === 0
+            })
+          );
+        }
         if (streams.includes(`${symbol.toLowerCase()}@ticker`))
           ws.send(
             JSON.stringify({

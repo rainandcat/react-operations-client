@@ -26,6 +26,15 @@ export interface Candle {
   closed: boolean;
   eventTime: number;
 }
+export interface MarketTrade {
+  symbol: MarketSymbol;
+  id: number;
+  price: number;
+  quantity: number;
+  tradeTime: number;
+  eventTime: number;
+  side: 'buy' | 'sell';
+}
 export interface MarketSnapshot {
   instruments: Instrument[];
   tickers: Ticker[];
@@ -34,8 +43,10 @@ export interface MarketSnapshot {
 export type MarketEvent =
   | { type: 'ticker'; ticker: Ticker }
   | { type: 'candle'; symbol: MarketSymbol; candle: Candle }
+  | { type: 'trade'; symbol: MarketSymbol; trade: MarketTrade }
   | { type: 'shutdown' };
 export interface FeedState extends MarketSnapshot {
+  trades: MarketTrade[];
   status: FeedStatus;
   message: string;
   updatedAt: number | null;

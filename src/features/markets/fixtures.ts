@@ -1,7 +1,18 @@
-import { MARKET_SYMBOLS, type MarketSnapshot, type MarketSymbol } from './types';
+import { MARKET_SYMBOLS, type MarketSnapshot, type MarketSymbol, type MarketTrade } from './types';
 
 // Locally authored, fixed demonstration data. Never a fallback for live requests.
 const prices = { BTCUSDT: 62000, ETHUSDT: 3200, SOLUSDT: 145 };
+export function fixtureTrades(symbol: MarketSymbol): MarketTrade[] {
+  return Array.from({ length: 50 }, (_, index) => ({
+    symbol,
+    id: 1000 - index,
+    price: prices[symbol] * (1 + Math.sin(index) * 0.0002),
+    quantity: 0.001 * ((index % 8) + 1),
+    tradeTime: Date.UTC(2026, 0, 15, 12, 59) - index * 1000,
+    eventTime: Date.UTC(2026, 0, 15, 12, 59) - index * 1000,
+    side: index % 2 ? 'sell' : 'buy'
+  }));
+}
 export function fixtureSnapshot(
   symbols: readonly MarketSymbol[],
   detail?: MarketSymbol

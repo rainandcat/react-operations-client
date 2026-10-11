@@ -1,11 +1,12 @@
 import { MarketRequestError } from './marketApi';
-import { mergeCandle, parseEvent } from './parsers';
+import { mergeCandle, mergeTrade, parseEvent } from './parsers';
 import type { FeedState, Instrument, MarketEvent, MarketSnapshot, MarketSymbol } from './types';
 
 export const EMPTY_FEED: FeedState = {
   instruments: [],
   tickers: [],
   candles: [],
+  trades: [],
   status: 'connecting',
   message: 'Connecting to public market data…',
   updatedAt: null
@@ -27,6 +28,7 @@ export class MarketFeed {
   private ws?: WebSocket;
   private retryTimer?: ReturnType<typeof setTimeout>;
   private watchdog?: ReturnType<typeof setInterval>;
+  private publishTimer?: ReturnType<typeof setTimeout>;
   private received = new Map<string, number>();
   private required: string[] = [];
   private stableSince = 0;
@@ -50,6 +52,8 @@ export class MarketFeed {
     window.removeEventListener('offline', this.environmentChanged);
   }
   private emit(status = this.state.status, message = this.state.message) {
+    clearTimeout(this.publishTimer);
+    this.publishTimer = undefined;
     this.state = { ...this.state, status, message };
     this.options.publish(this.state);
   }
@@ -59,6 +63,8 @@ export class MarketFeed {
     this.controller = undefined;
     clearTimeout(this.retryTimer);
     clearInterval(this.watchdog);
+    clearTimeout(this.publishTimer);
+    this.publishTimer = undefined;
     this.retryTimer = undefined;
     this.watchdog = undefined;
     if (this.ws) {
@@ -128,6 +134,8 @@ export class MarketFeed {
       };
     } else if (event.type === 'candle') {
       this.state = { ...this.state, candles: mergeCandle(this.state.candles, event.candle) };
+    } else if (event.type === 'trade') {
+      this.state = { ...this.state, trades: mergeTrade(this.state.trades, event.trade) };
     }
   }
   private checkFreshness() {
@@ -141,7 +149,8 @@ export class MarketFeed {
     if (!this.hydrated) return;
     if (!this.stableSince) this.stableSince = now;
     if (now - this.stableSince > 60_000) this.attempts = 0;
-    this.emit('live', 'Live · Binance Spot public market data');
+    if (this.state.status !== 'live') this.emit('live', 'Live · Binance Spot public market data');
+    else if (!this.publishTimer) this.publishTimer = setTimeout(() => this.emit(), 250);
   }
   private async connect() {
     this.clearAttempt();
@@ -150,6 +159,7 @@ export class MarketFeed {
     const controller = new AbortController();
     this.controller = controller;
     this.startedAt = Date.now();
+    this.state = { ...this.state, trades: [] };
     this.required = this.options.symbols.map((symbol) => `${symbol}:ticker`);
     if (this.options.detail) this.required.push(`${this.options.detail}:candle`);
     this.emit(this.attempts ? 'reconnecting' : 'connecting', 'Synchronizing public market data…');
@@ -166,6 +176,7 @@ export class MarketFeed {
           instruments,
           tickers: [],
           candles: [],
+          trades: [],
           status: 'unavailable',
           message: 'Selected pairs are unavailable for Spot trading.',
           updatedAt: null
@@ -177,7 +188,11 @@ export class MarketFeed {
       if (this.options.detail) this.required.push(`${this.options.detail}:candle`);
       this.startedAt = Date.now();
       const streams = active.map((symbol) => `${symbol.toLowerCase()}@ticker`);
-      if (this.options.detail) streams.push(`${this.options.detail.toLowerCase()}@kline_1m`);
+      if (this.options.detail)
+        streams.push(
+          `${this.options.detail.toLowerCase()}@kline_1m`,
+          `${this.options.detail.toLowerCase()}@trade`
+        );
       const ws = (this.options.socket ?? ((url) => new WebSocket(url)))(
         `wss://data-stream.binance.vision:443/stream?streams=${streams.join('/')}`
       );
@@ -193,14 +208,23 @@ export class MarketFeed {
           const symbol = event.type === 'ticker' ? event.ticker.symbol : event.symbol;
           if (
             !active.includes(symbol) ||
-            (event.type === 'candle' && symbol !== this.options.detail)
+            ((event.type === 'candle' || event.type === 'trade') && symbol !== this.options.detail)
           )
             throw new Error('Unexpected subscription data.');
           const eventTime =
-            event.type === 'ticker' ? event.ticker.eventTime : event.candle.eventTime;
+            event.type === 'ticker'
+              ? event.ticker.eventTime
+              : event.type === 'trade'
+                ? event.trade.eventTime
+                : event.candle.eventTime;
           if (Math.abs(Date.now() - eventTime) > 15_000)
             throw new Error('Stream timestamp is stale.');
           this.received.set(`${symbol}:${event.type}`, Date.now());
+          if (event.type === 'trade') {
+            this.apply(event);
+            if (this.hydrated) this.checkFreshness();
+            return;
+          }
           if (!this.hydrated) {
             if (this.buffer.length >= 1000) throw new Error('Stream buffer full. Resynchronizing.');
             this.buffer.push(event);
@@ -227,6 +251,7 @@ export class MarketFeed {
       if (this.stopped || epoch !== this.epoch) return;
       this.state = {
         ...snapshot,
+        trades: this.state.trades,
         status: 'connecting',
         message: 'Snapshot loaded. Waiting for live streams; prices may be stale.',
         updatedAt: Math.max(0, ...snapshot.tickers.map((row) => row.eventTime)) || null

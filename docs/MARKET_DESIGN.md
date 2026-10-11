@@ -1,5 +1,15 @@
 # Public Spot market implementation
 
+## Phase C: recent executions (2026-10-11)
+
+Reviewed `firebit-member/src/views/trade/components/OrderBook.vue` trade panel: price, base quantity, execution time, scrolling rows and direction color. Reimplemented this hierarchy as a standalone React panel below the chart, with explicit Buy/Sell text and UTC; order book remains deferred.
+
+The detail combined socket adds `<symbol>@trade`. Runtime validation covers symbol, safe integer ID, positive price/quantity, timestamps and buyer-maker boolean. Buyer maker means taker Sell. Deduplicate symbol/ID, sort execution time then ID descending, retain 50; pre-hydration trades have their own bounded list and do not fill the candle event buffer. Ongoing live publications batch at 250ms. Quiet trades do not participate in ticker/candle freshness requirements. Attempt cleanup cancels pending publications and ignores old callbacks. Failed connections retain labelled records; new connections reset them without gap backfill. Demo mode uses locally authored fixtures and no socket.
+
+The list reserves a fixed 25rem viewport for empty, partial and full states to avoid row-count-driven layout shifts. The themed scrollbar keeps its gutter reserved, appears only during scrolling and hides after 800ms idle; unmount clears its timer. Reduced-motion and forced-color preferences are respected.
+
+Checked the official [Trade Streams contract](https://github.com/binance/binance-spot-api-docs/blob/master/web-socket-streams.md#trade-streams). Verification: 60 Vitest tests and 18 desktop/mobile Chromium E2E cases; real BTCUSDT smoke reached live and received executions without page errors. See `market-smoke.json` for the dated local report.
+
 Scope authorized on 2026-10-10: execute the Binance extension before external publication of the original portfolio. Manager and account features remain mock. Only Client market services use public, keyless Binance URLs. BTCUSDT, ETHUSDT and SOLUSDT are the initial allowlist.
 
 ## Source review

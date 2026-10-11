@@ -3,6 +3,7 @@ import { isMarketSymbol, MARKET_SYMBOLS, type MarketSymbol } from './types';
 import { useMarketFeed } from './useMarketFeed';
 import { formatPrice, MarketControls, useMarketMode } from './MarketControls';
 import { CandleChart } from './CandleChart';
+import { RecentTrades } from './RecentTrades';
 
 function MarketDetail({ symbol }: { symbol: MarketSymbol }) {
   const mode = useMarketMode();
@@ -84,6 +85,12 @@ function MarketDetail({ symbol }: { symbol: MarketSymbol }) {
           most 500. Pan or zoom to inspect. No trading actions are available.
         </p>
       </section>
+      <RecentTrades
+        trades={feed.trades}
+        base={instrument?.base ?? symbol.replace('USDT', '')}
+        precision={instrument?.precision ?? 2}
+        status={feed.status}
+      />
     </div>
   );
 }
