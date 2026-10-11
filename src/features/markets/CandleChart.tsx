@@ -1,3 +1,5 @@
+import { formatLocale } from '@/i18n';
+import { translate, localize, useLocale } from '@/i18n';
 import { useEffect, useRef } from 'react';
 import {
   CandlestickSeries,
@@ -9,8 +11,8 @@ import {
 } from 'lightweight-charts';
 import { usePreferences } from '@/features/preferences/preferencesStore';
 import type { Candle } from './types';
-
 export function CandleChart({ candles, precision }: { candles: Candle[]; precision: number }) {
+  const locale = useLocale();
   const container = useRef<HTMLDivElement>(null);
   const chart = useRef<IChartApi | null>(null);
   const series = useRef<ISeriesApi<'Candlestick'> | null>(null);
@@ -79,46 +81,53 @@ export function CandleChart({ candles, precision }: { candles: Candle[]; precisi
     if (!old.length) chart.current?.timeScale().fitContent();
     previous.current = candles;
   }, [candles, precision]);
+  useEffect(() => {
+    chart.current?.applyOptions({ localization: { locale: formatLocale() } });
+  }, [locale, precision]);
   const latest = candles.at(-1);
   return (
     <div className="candle-panel">
       <div className="chart-heading">
-        <p>1 minute · UTC · {candles.length} candles</p>
+        <p>
+          {translate('1 minute \u00B7 UTC \u00B7 {{v0}} candles', { v0: localize(candles.length) })}
+        </p>
         <button
           className="text-button"
           type="button"
           onClick={() => chart.current?.timeScale().scrollToRealTime()}
         >
-          Follow latest
+          {translate('Follow latest')}
         </button>
       </div>
       <div
         ref={container}
         className="candle-chart"
         role="img"
-        aria-label="Interactive one-minute candlestick chart. Drag to pan and pinch or scroll to zoom. Latest values appear below."
+        aria-label={translate(
+          'Interactive one-minute candlestick chart. Drag to pan and pinch or scroll to zoom. Latest values appear below.'
+        )}
       />
       {latest && (
-        <dl className="candle-values" aria-label="Latest candle">
+        <dl className="candle-values" aria-label={translate('Latest candle')}>
           <div>
-            <dt>Open</dt>
-            <dd>{latest.open.toFixed(precision)}</dd>
+            <dt>{translate('Open')}</dt>
+            <dd>{localize(latest.open.toFixed(precision))}</dd>
           </div>
           <div>
-            <dt>High</dt>
-            <dd>{latest.high.toFixed(precision)}</dd>
+            <dt>{translate('High')}</dt>
+            <dd>{localize(latest.high.toFixed(precision))}</dd>
           </div>
           <div>
-            <dt>Low</dt>
-            <dd>{latest.low.toFixed(precision)}</dd>
+            <dt>{translate('Low')}</dt>
+            <dd>{localize(latest.low.toFixed(precision))}</dd>
           </div>
           <div>
-            <dt>Close</dt>
-            <dd>{latest.close.toFixed(precision)}</dd>
+            <dt>{translate('Close')}</dt>
+            <dd>{localize(latest.close.toFixed(precision))}</dd>
           </div>
           <div>
-            <dt>State</dt>
-            <dd>{latest.closed ? 'Closed' : 'In progress'}</dd>
+            <dt>{translate('State')}</dt>
+            <dd>{localize(latest.closed ? 'Closed' : 'In progress')}</dd>
           </div>
         </dl>
       )}

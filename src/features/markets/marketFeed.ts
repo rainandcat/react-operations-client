@@ -51,10 +51,17 @@ export class MarketFeed {
     window.removeEventListener('online', this.environmentChanged);
     window.removeEventListener('offline', this.environmentChanged);
   }
-  private emit(status = this.state.status, message = this.state.message) {
+  private emit(
+    status = this.state.status,
+    message = this.state.message,
+    publicMessage: FeedState['publicMessage'] = status === this.state.status &&
+    message === this.state.message
+      ? this.state.publicMessage
+      : undefined
+  ) {
     clearTimeout(this.publishTimer);
     this.publishTimer = undefined;
-    this.state = { ...this.state, status, message };
+    this.state = { ...this.state, status, message, publicMessage };
     this.options.publish(this.state);
   }
   private clearAttempt() {
@@ -101,7 +108,8 @@ export class MarketFeed {
     if (terminal || this.attempts >= 5) {
       this.emit(
         'unavailable',
-        `${message} Use Retry connection to recover. Last snapshot may be stale.`
+        `${message} Use Retry connection to recover. Last snapshot may be stale.`,
+        { code: 'unavailable', rateLimited: !!rate }
       );
       return;
     }
@@ -112,7 +120,8 @@ export class MarketFeed {
     this.attempts++;
     this.emit(
       'reconnecting',
-      `${message} Retrying at ${new Date(Date.now() + delay).toLocaleTimeString()}. Last snapshot may be stale.`
+      `${message} Retrying at ${new Date(Date.now() + delay).toLocaleTimeString()}. Last snapshot may be stale.`,
+      { code: 'retry', retryAt: Date.now() + delay, rateLimited: !!rate }
     );
     this.retryTimer = setTimeout(
       () => {

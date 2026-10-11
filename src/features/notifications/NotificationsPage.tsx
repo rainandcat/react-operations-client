@@ -1,18 +1,18 @@
+import { formatDate } from '@/i18n';
+import { translate, localize, useLocale } from '@/i18n';
 import { useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ApiRequestError } from '@/services/apiTypes';
 import type { MockScenario } from '@/services/mockTransport';
 import type { NotificationKind } from './types';
 import { useNotifications } from './useNotifications';
-
 const kinds: readonly NotificationKind[] = ['activity', 'account', 'system'];
-
 function readPage(value: string | null): number {
   const page = Number(value);
   return Number.isSafeInteger(page) && page > 0 ? page : 1;
 }
-
 export default function NotificationsPage() {
+  useLocale();
   const [searchParams, setSearchParams] = useSearchParams();
   const kind = kinds.find((item) => item === searchParams.get('kind'));
   const page = readPage(searchParams.get('page'));
@@ -22,7 +22,6 @@ export default function NotificationsPage() {
   const query = useNotifications({ kind, page, pageSize: 4 }, scenario);
   const totalPages = Math.max(1, Math.ceil((query.data?.total ?? 0) / 4));
   const pageOutOfRange = query.isSuccess && !query.isPlaceholderData && page > totalPages;
-
   useEffect(() => {
     if (!pageOutOfRange) return;
     setSearchParams(
@@ -35,7 +34,6 @@ export default function NotificationsPage() {
       { replace: true }
     );
   }, [pageOutOfRange, setSearchParams, totalPages]);
-
   function updateParams(key: string, value: string, resetPage = false) {
     setSearchParams(
       (previous) => {
@@ -48,33 +46,32 @@ export default function NotificationsPage() {
       { replace: true }
     );
   }
-
   return (
     <div className="page-stack">
       <section className="page-heading">
-        <p className="eyebrow">Stay informed</p>
-        <h1>Notifications</h1>
-        <p>Relevant updates, thoughtfully grouped.</p>
+        <p className="eyebrow">{translate('Stay informed')}</p>
+        <h1>{translate('Notifications')}</h1>
+        <p>{translate('Relevant updates, thoughtfully grouped.')}</p>
       </section>
-      <section className="activity-panel" aria-label="Notification results">
+      <section className="activity-panel" aria-label={translate('Notification results')}>
         <div className="activity-controls">
           <div className="activity-field">
-            <label htmlFor="notification-kind">Notification type</label>
+            <label htmlFor="notification-kind">{translate('Notification type')}</label>
             <select
               id="notification-kind"
               value={kind ?? ''}
               onChange={(event) => updateParams('kind', event.target.value, true)}
             >
-              <option value="">All types</option>
+              <option value="">{translate('All types')}</option>
               {kinds.map((item) => (
                 <option key={item} value={item}>
-                  {item}
+                  {localize(item)}
                 </option>
               ))}
             </select>
           </div>
           <div className="activity-field">
-            <label htmlFor="notification-demo">Demo state</label>
+            <label htmlFor="notification-demo">{translate('Demo state')}</label>
             <select
               id="notification-demo"
               value={scenario === 'unavailable' ? 'error' : scenario}
@@ -86,46 +83,52 @@ export default function NotificationsPage() {
                 )
               }
             >
-              <option value="normal">Normal</option>
-              <option value="empty">Empty</option>
-              <option value="error">Service error</option>
+              <option value="normal">{translate('Normal')}</option>
+              <option value="empty">{translate('Empty')}</option>
+              <option value="error">{translate('Service error')}</option>
             </select>
           </div>
         </div>
         <p className="activity-count" role="status" aria-live="polite">
-          {query.isFetching
-            ? 'Updating fictional notifications…'
-            : `${query.data?.total ?? 0} fictional notifications`}
+          {localize(
+            query.isFetching
+              ? 'Updating fictional notifications…'
+              : `${query.data?.total ?? 0} fictional notifications`
+          )}
         </p>
         {query.isPending && (
           <p className="activity-message" role="status">
-            Loading fictional notifications…
+            {translate('Loading fictional notifications\u2026')}
           </p>
         )}
         {query.isError && (
           <div className="activity-message" role="alert">
-            <h2>Notifications unavailable</h2>
+            <h2>{translate('Notifications unavailable')}</h2>
             <p>
-              {query.error instanceof ApiRequestError
-                ? query.error.message
-                : 'An unexpected demo error occurred.'}
+              {localize(
+                query.error instanceof ApiRequestError
+                  ? query.error.message
+                  : 'An unexpected demo error occurred.'
+              )}
             </p>
             <button className="button button-primary" type="button" onClick={() => query.refetch()}>
-              Try again
+              {translate('Try again')}
             </button>
           </div>
         )}
-        {pageOutOfRange && <p role="status">Moving to the last available page…</p>}
+        {pageOutOfRange && (
+          <p role="status">{translate('Moving to the last available page\u2026')}</p>
+        )}
         {query.isSuccess && !pageOutOfRange && query.data.data.length === 0 && (
           <div className="activity-message">
-            <h2>No notifications</h2>
-            <p>Try another type or switch the demo state to Normal.</p>
+            <h2>{translate('No notifications')}</h2>
+            <p>{translate('Try another type or switch the demo state to Normal.')}</p>
             <button
               className="inline-button"
               type="button"
               onClick={() => setSearchParams(new URLSearchParams(), { replace: true })}
             >
-              Clear filters
+              {translate('Clear filters')}
             </button>
           </div>
         )}
@@ -135,20 +138,23 @@ export default function NotificationsPage() {
               {query.data.data.map((item) => (
                 <li key={item.id}>
                   <div>
-                    <span className="notification-kind">{item.kind}</span>
-                    <h2>{item.title}</h2>
-                    <p>{item.body}</p>
+                    <span className="notification-kind">{localize(item.kind)}</span>
+                    <h2>{localize(item.title)}</h2>
+                    <p>{localize(item.body)}</p>
                   </div>
                   <div className="notification-meta">
-                    <span>{item.createdAt.slice(0, 10)}</span>
-                    <span>{item.readAt ? 'Read' : 'Unread'}</span>
+                    <span>{localize(formatDate(item.createdAt))}</span>
+                    <span>{localize(item.readAt ? 'Read' : 'Unread')}</span>
                   </div>
                 </li>
               ))}
             </ul>
             <div className="activity-pagination">
               <span>
-                Page {page} of {totalPages}
+                {translate('Page {{v0}} of {{v1}}', {
+                  v0: localize(page),
+                  v1: localize(totalPages)
+                })}
               </span>
               <div>
                 <button
@@ -156,14 +162,14 @@ export default function NotificationsPage() {
                   disabled={page <= 1}
                   onClick={() => updateParams('page', String(page - 1))}
                 >
-                  Previous
+                  {translate('Previous')}
                 </button>
                 <button
                   type="button"
                   disabled={page >= totalPages}
                   onClick={() => updateParams('page', String(page + 1))}
                 >
-                  Next
+                  {translate('Next')}
                 </button>
               </div>
             </div>

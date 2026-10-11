@@ -1,8 +1,8 @@
+import { translate, localize, useLocale } from '@/i18n';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { authenticateDemoClient } from './demoAuth';
 import { useClientSession } from './sessionStore';
-
 export function safeDestination(value: string | null): string | null {
   if (
     !value ||
@@ -18,6 +18,7 @@ export function safeDestination(value: string | null): string | null {
     : null;
 }
 export function LoginDialog() {
+  useLocale();
   const [account, setAccount] = useState('member@demo.invalid');
   const [passcode, setPasscode] = useState('');
   const [error, setError] = useState('');
@@ -32,7 +33,6 @@ export function LoginDialog() {
   params.delete('login');
   params.delete('returnTo');
   const background = location.pathname + (params.size ? `?${params}` : '') + location.hash;
-
   useEffect(() => {
     const node = dialog.current;
     if (!node) return;
@@ -45,7 +45,6 @@ export function LoginDialog() {
       else document.getElementById('client-sign-in')?.focus();
     };
   }, []);
-
   function cancel() {
     navigate(background, { replace: true });
   }
@@ -88,17 +87,24 @@ export function LoginDialog() {
       }}
     >
       <div className="dialog-heading">
-        <p className="eyebrow">Local demo account</p>
-        <button type="button" className="text-button" onClick={cancel} aria-label="Close sign in">
-          Close ×
+        <p className="eyebrow">{translate('Local demo account')}</p>
+        <button
+          type="button"
+          className="text-button"
+          onClick={cancel}
+          aria-label={translate('Close sign in')}
+        >
+          {translate('Close \u00D7')}
         </button>
       </div>
-      <h2 id="login-title">Welcome back</h2>
+      <h2 id="login-title">{translate('Welcome back')}</h2>
       <p id="login-description">
-        Explore your fictional account. This demo sign in does not connect a Binance account.
+        {translate(
+          'Explore your fictional account. This demo sign in does not connect a Binance account.'
+        )}
       </p>
       <form onSubmit={submit} noValidate>
-        <label htmlFor="account">Demo account</label>
+        <label htmlFor="account">{translate('Demo account')}</label>
         <input
           ref={accountInput}
           id="account"
@@ -112,7 +118,7 @@ export function LoginDialog() {
           aria-invalid={Boolean(error)}
           aria-describedby={error ? 'login-error' : undefined}
         />
-        <label htmlFor="passcode">Passcode</label>
+        <label htmlFor="passcode">{translate('Passcode')}</label>
         <input
           id="passcode"
           type="password"
@@ -127,17 +133,19 @@ export function LoginDialog() {
         />
         {error && (
           <p id="login-error" className="form-error" role="alert">
-            {error}
+            {localize(error)}
           </p>
         )}
         <button type="submit" className="button button-primary">
-          Enter demo
+          {translate('Enter demo')}
         </button>
       </form>
       <p className="demo-hint">
-        Account: <strong>member@demo.invalid</strong>
+        {translate('Account:')}
+        <strong>member@demo.invalid</strong>
         <br />
-        Passcode: <strong>demo123</strong>
+        {translate('Passcode:')}
+        <strong>{translate('demo123')}</strong>
       </p>
     </dialog>
   );

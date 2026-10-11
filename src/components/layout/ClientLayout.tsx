@@ -1,9 +1,10 @@
-import { Suspense } from 'react';
+import { LanguageSelector } from '@/i18n/LanguageSelector';
+import { translate, localize, useLocale } from '@/i18n';
+import { Suspense, useEffect } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { LoginDialog } from '@/features/auth/LoginDialog';
 import { useClientSession } from '@/features/auth/sessionStore';
 import { usePreferences } from '@/features/preferences/preferencesStore';
-
 const links = [
   { to: '/markets/BTCUSDT', label: 'Markets' },
   { to: '/wallet/overview', label: 'Wallet' },
@@ -11,38 +12,38 @@ const links = [
   { to: '/notifications', label: 'Notifications' },
   { to: '/preferences', label: 'Preferences' }
 ];
-
 export function ClientLayout() {
+  useLocale();
   const session = useClientSession((state) => state.session);
   const signOut = useClientSession((state) => state.signOut);
   const theme = usePreferences((state) => state.theme);
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+  }, [theme]);
   const density = usePreferences((state) => state.density);
   const navigate = useNavigate();
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const loginOpen = params.get('login') === '1';
-
   function openSignIn() {
     params.set('login', '1');
     params.delete('returnTo');
     navigate(location.pathname + `?${params}` + location.hash);
   }
-
   function handleSignOut() {
     signOut();
     navigate('/', { replace: true });
   }
-
   return (
     <div className="client-shell" data-theme={theme} data-density={density}>
       <header className="client-header">
-        <NavLink to="/" className="brand" aria-label="Operations Client home">
+        <NavLink to="/" className="brand" aria-label={translate('Operations Client home')}>
           <span className="brand-icon">O</span>
           <span>
             Ordinary<span className="brand-period">.</span>
           </span>
         </NavLink>
-        <nav className="client-nav" aria-label="Main navigation">
+        <nav className="client-nav" aria-label={translate('Main navigation')}>
           {links.map(({ to, label }) => (
             <NavLink
               key={to}
@@ -53,17 +54,18 @@ export function ClientLayout() {
                   : 'nav-link'
               }
             >
-              {label}
+              {localize(label)}
             </NavLink>
           ))}
         </nav>
+        <LanguageSelector />
         {session ? (
           <button className="text-button" type="button" onClick={handleSignOut}>
-            Sign out
+            {translate('Sign out')}
           </button>
         ) : (
           <button id="client-sign-in" className="text-button" type="button" onClick={openSignIn}>
-            Sign in
+            {translate('Sign in')}
           </button>
         )}
       </header>
@@ -71,7 +73,7 @@ export function ClientLayout() {
         <Suspense
           fallback={
             <p className="loading" role="status">
-              Opening your space…
+              {translate('Opening your space\u2026')}
             </p>
           }
         >
@@ -79,9 +81,11 @@ export function ClientLayout() {
         </Suspense>
       </main>
       <footer className="client-footer">
-        <span>Operations Client / Portfolio demo</span>
-        <span>Public Spot markets · Fictional demo accounts · Unofficial</span>
-        <span>{session?.account}</span>
+        <span>{translate('Operations Client / Portfolio demo')}</span>
+        <span>
+          {translate('Public Spot markets \u00B7 Fictional demo accounts \u00B7 Unofficial')}
+        </span>
+        <span>{localize(session?.account)}</span>
       </footer>
       {loginOpen && <LoginDialog />}
     </div>

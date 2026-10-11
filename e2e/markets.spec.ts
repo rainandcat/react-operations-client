@@ -140,6 +140,7 @@ test('login dialog preserves public context, destination, focus, cancel and hist
   await page.goto('/activity?kind=debit');
   await expect(page.getByRole('dialog')).toBeVisible();
   await page.reload();
+  await expect(page.getByRole('dialog')).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page).toHaveURL(/\/$/);
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();

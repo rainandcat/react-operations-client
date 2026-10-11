@@ -4,6 +4,10 @@ A React + TypeScript portfolio app with a public Spot market notebook and a sepa
 
 ## Explore
 
+[Live demo](https://react-operations-client.vercel.app/) · [Fixed market demonstration](https://react-operations-client.vercel.app/?mode=demo)
+
+Deployed on Vercel. Public markets open without sign-in; account pages use the fictional demo account below. Deployment is available; production market connectivity and remote CI results have not been verified in this documentation.
+
 - Public `/`: searchable BTC/USDT, ETH/USDT and SOL/USDT watchlist with price, rolling 24h change and USDT quote volume.
 - Public `/markets/:symbol`: 24h summary, interactive one-minute UTC candles and recent executions, connection state and recovery.
 - Shared demo sign-in dialog: stays on the current public page or returns to the requested protected URL. Cancel clears the destination; reload and browser history preserve dialog state.
@@ -59,6 +63,14 @@ flowchart LR
 
 See [Market design](docs/MARKET_DESIGN.md) and [Product spec](docs/PRODUCT_SPEC.md). Selected legacy information hierarchy and interactions were reimplemented in React using the Client palette; no Vue source, styles, assets, private endpoints or account data were copied.
 
+## Language and display preferences
+
+English is the default. The header and Preferences offer English, Traditional Chinese (`zh-TW`), Simplified Chinese (`zh-CN`) and Arabic (`ar`). Language is saved locally; browser language does not override it. New users start in dark mode; existing light-mode preferences are preserved, and display reset returns to dark mode.
+
+Arabic uses RTL layout while chart time, prices, symbols and account identifiers retain LTR order. Switching language preserves the URL, session and mounted chart. Market recovery messages and fictional account content are translated alongside navigation, forms and accessible labels.
+
+`src/i18n/messages/` contains source dictionaries and documented English fallback exceptions. `scripts/build-locales.mjs` validates keys and interpolation, then generates complete dictionaries under `src/i18n/locales/`. Only the selected language chunk loads at runtime; English fallback is merged during build. A failed switch keeps the current language and preference. `npm run test:i18n` validates and regenerates the bundles.
+
 ## Verification
 
 ```bash
@@ -71,7 +83,7 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-Local verification on 2026-10-11: 60 Vitest tests and 18 Chromium E2E cases (nine journeys × desktop/mobile viewports). E2E uses fixed intercepted REST/WS payloads, independent of Binance availability. Cases cover markets, candles, trade bursts/deduplication/quiet streams, rapid symbol/mode switching, login/history/focus, rate limits, inactive pairs, dark theme and existing account flows. Mobile means a viewport, not a physical device or Safari.
+Local verification on 2026-10-12: 64 Vitest tests and 24 Chromium E2E cases (12 journeys × desktop/mobile viewports). E2E uses fixed intercepted REST/WS payloads, independent of Binance availability. Cases cover markets, candles, trades, recovery, account flows, saved light/dark preferences, on-demand language loading, translated account content, language-load failure and Arabic RTL switching without chart recreation. Mobile means a viewport, not a physical device or Safari.
 
 Optional real-network smoke check, separate from CI:
 
@@ -83,4 +95,4 @@ It builds and opens production preview on port 4175, connects to public data and
 
 ## Limits
 
-No keys, account integration, orders, order book, token refresh or official affiliation. Mock wallet data is unrelated to public prices. Notifications remain read-only. No public deployment, remote CI result, performance benchmark, physical-device or Safari verification is claimed. No leftward historical pagination; charts show bounded recent history. Visible tabs each own their connection without cross-tab leadership. Static hosting must rewrite app routes to `index.html`.
+No keys, account integration, orders, order book, token refresh or official affiliation. Mock wallet data is unrelated to public prices. Notifications remain read-only. Remote CI results, production market connectivity, performance benchmarks, physical-device and Safari verification remain unconfirmed here. No leftward historical pagination; charts show bounded recent history. Visible tabs each own their connection without cross-tab leadership. Static hosting must rewrite app routes to `index.html`.

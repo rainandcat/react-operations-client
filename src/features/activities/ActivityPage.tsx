@@ -1,28 +1,26 @@
+import { formatDate } from '@/i18n';
+import { translate, localize, useLocale } from '@/i18n';
 import { useEffect } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { ApiRequestError } from '@/services/apiTypes';
 import type { MockScenario } from '@/services/mockTransport';
 import type { ActivityKind } from './types';
 import { useActivities } from './useActivities';
-
 const kinds: readonly ActivityKind[] = ['credit', 'debit', 'transfer'];
-
 function readPage(value: string | null): number {
   const page = Number(value);
   return Number.isSafeInteger(page) && page > 0 ? page : 1;
 }
-
 function readKind(value: string | null): ActivityKind | undefined {
   return kinds.find((kind) => kind === value);
 }
-
 function readScenario(value: string | null): MockScenario {
   if (value === 'empty') return 'empty';
   if (value === 'error') return 'unavailable';
   return 'normal';
 }
-
 export default function ActivityPage() {
+  useLocale();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const kind = readKind(searchParams.get('kind'));
@@ -32,7 +30,6 @@ export default function ActivityPage() {
   const query = useActivities({ kind, sort, page, pageSize: 5 }, scenario);
   const totalPages = Math.max(1, Math.ceil((query.data?.total ?? 0) / 5));
   const pageOutOfRange = query.isSuccess && !query.isPlaceholderData && page > totalPages;
-
   useEffect(() => {
     if (!pageOutOfRange) return;
     setSearchParams(
@@ -45,7 +42,6 @@ export default function ActivityPage() {
       { replace: true }
     );
   }, [pageOutOfRange, setSearchParams, totalPages]);
-
   function updateParams(key: string, value: string, resetPage = false) {
     setSearchParams(
       (previous) => {
@@ -58,32 +54,35 @@ export default function ActivityPage() {
       { replace: true }
     );
   }
-
   return (
     <div className="page-stack">
       <section className="page-heading">
-        <p className="eyebrow">Your timeline</p>
-        <h1>Activity</h1>
-        <p>Explore a small, fictional timeline. No account or backend connection is involved.</p>
+        <p className="eyebrow">{translate('Your timeline')}</p>
+        <h1>{translate('Activity')}</h1>
+        <p>
+          {translate(
+            'Explore a small, fictional timeline. No account or backend connection is involved.'
+          )}
+        </p>
       </section>
 
-      <section className="activity-panel" aria-label="Activity results">
+      <section className="activity-panel" aria-label={translate('Activity results')}>
         <div className="activity-controls">
           <div className="activity-field">
-            <label htmlFor="activity-kind">Activity type</label>
+            <label htmlFor="activity-kind">{translate('Activity type')}</label>
             <select
               id="activity-kind"
               value={kind ?? ''}
               onChange={(event) => updateParams('kind', event.target.value, true)}
             >
-              <option value="">All types</option>
-              <option value="credit">Credit</option>
-              <option value="debit">Debit</option>
-              <option value="transfer">Transfer</option>
+              <option value="">{translate('All types')}</option>
+              <option value="credit">{translate('Credit')}</option>
+              <option value="debit">{translate('Debit')}</option>
+              <option value="transfer">{translate('Transfer')}</option>
             </select>
           </div>
           <div className="activity-field">
-            <label htmlFor="activity-sort">Sort</label>
+            <label htmlFor="activity-sort">{translate('Sort')}</label>
             <select
               id="activity-sort"
               value={sort}
@@ -91,12 +90,12 @@ export default function ActivityPage() {
                 updateParams('sort', event.target.value === 'oldest' ? 'oldest' : '', true)
               }
             >
-              <option value="newest">Newest first</option>
-              <option value="oldest">Oldest first</option>
+              <option value="newest">{translate('Newest first')}</option>
+              <option value="oldest">{translate('Oldest first')}</option>
             </select>
           </div>
           <div className="activity-field">
-            <label htmlFor="demo-scenario">Demo state</label>
+            <label htmlFor="demo-scenario">{translate('Demo state')}</label>
             <select
               id="demo-scenario"
               value={scenario === 'unavailable' ? 'error' : scenario}
@@ -108,46 +107,52 @@ export default function ActivityPage() {
                 )
               }
             >
-              <option value="normal">Normal</option>
-              <option value="empty">Empty</option>
-              <option value="error">Service error</option>
+              <option value="normal">{translate('Normal')}</option>
+              <option value="empty">{translate('Empty')}</option>
+              <option value="error">{translate('Service error')}</option>
             </select>
           </div>
         </div>
         <p className="activity-count" role="status" aria-live="polite">
-          {query.isFetching
-            ? 'Updating fictional activity…'
-            : `${query.data?.total ?? 0} fictional activities`}
+          {localize(
+            query.isFetching
+              ? 'Updating fictional activity…'
+              : `${query.data?.total ?? 0} fictional activities`
+          )}
         </p>
         {query.isPending && (
           <p className="activity-message" role="status">
-            Loading fictional activity…
+            {translate('Loading fictional activity\u2026')}
           </p>
         )}
         {query.isError && (
           <div className="activity-message" role="alert">
-            <h2>Activity is unavailable</h2>
+            <h2>{translate('Activity is unavailable')}</h2>
             <p>
-              {query.error instanceof ApiRequestError
-                ? query.error.message
-                : 'An unexpected demo error occurred.'}
+              {localize(
+                query.error instanceof ApiRequestError
+                  ? query.error.message
+                  : 'An unexpected demo error occurred.'
+              )}
             </p>
             <button className="button button-primary" type="button" onClick={() => query.refetch()}>
-              Try again
+              {translate('Try again')}
             </button>
           </div>
         )}
-        {pageOutOfRange && <p role="status">Moving to the last available page…</p>}
+        {pageOutOfRange && (
+          <p role="status">{translate('Moving to the last available page\u2026')}</p>
+        )}
         {query.isSuccess && !pageOutOfRange && query.data.data.length === 0 && (
           <div className="activity-message">
-            <h2>Nothing to show</h2>
-            <p>Try another activity type or switch the demo state to Normal.</p>
+            <h2>{translate('Nothing to show')}</h2>
+            <p>{translate('Try another activity type or switch the demo state to Normal.')}</p>
             <button
               className="inline-button"
               type="button"
               onClick={() => setSearchParams(new URLSearchParams(), { replace: true })}
             >
-              Clear filters
+              {translate('Clear filters')}
             </button>
           </div>
         )}
@@ -162,19 +167,25 @@ export default function ActivityPage() {
                     className="activity-item"
                   >
                     <span className="activity-monogram" aria-hidden="true">
-                      {activity.kind.slice(0, 1).toUpperCase()}
+                      {localize(activity.kind.slice(0, 1).toUpperCase())}
                     </span>
                     <span className="activity-description">
-                      <strong>{activity.kind}</strong>
+                      <strong>{localize(activity.kind)}</strong>
                       <small>
-                        {activity.id} · {activity.occurredAt.slice(0, 10)}
+                        {translate('{{v0}} \u00B7 {{v1}}', {
+                          v0: localize(activity.id),
+                          v1: localize(formatDate(activity.occurredAt))
+                        })}
                       </small>
                     </span>
                     <span className="activity-amount">
                       <strong>
-                        {activity.amount} {activity.currencyCode}
+                        {translate('{{v0}} {{v1}}', {
+                          v0: localize(activity.amount),
+                          v1: localize(activity.currencyCode)
+                        })}
                       </strong>
-                      <small>{activity.status}</small>
+                      <small>{localize(activity.status)}</small>
                     </span>
                     <span aria-hidden="true">↗</span>
                   </Link>
@@ -183,7 +194,10 @@ export default function ActivityPage() {
             </ul>
             <div className="activity-pagination">
               <span>
-                Page {page} of {totalPages}
+                {translate('Page {{v0}} of {{v1}}', {
+                  v0: localize(page),
+                  v1: localize(totalPages)
+                })}
               </span>
               <div>
                 <button
@@ -191,14 +205,14 @@ export default function ActivityPage() {
                   disabled={page <= 1}
                   onClick={() => updateParams('page', String(page - 1))}
                 >
-                  Previous
+                  {translate('Previous')}
                 </button>
                 <button
                   type="button"
                   disabled={page >= totalPages}
                   onClick={() => updateParams('page', String(page + 1))}
                 >
-                  Next
+                  {translate('Next')}
                 </button>
               </div>
             </div>

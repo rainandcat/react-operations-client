@@ -35,6 +35,7 @@ test('protected activity, out-of-range correction and detail return', async ({
 test('preferences survive reload and activity error recovers', async ({ page }) => {
   await page.goto('/preferences');
   await signIn(page);
+  await page.getByRole('radio', { name: 'Light', exact: true }).check();
   await expect
     .poll(() =>
       page
